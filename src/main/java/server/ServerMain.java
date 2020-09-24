@@ -17,7 +17,7 @@ public class ServerMain {
 
                 System.out.println("Connection to "+ client.getInetAddress() + " " + client.getPort() + " accepted...");
 
-                Thread thread = new Thread(new ClientHandler(client));
+                Thread thread = new Thread(new MultiClientHandler(client));
                 thread.start();
             }
         } catch (IOException e) {

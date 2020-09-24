@@ -1,21 +1,26 @@
 package client;
 
 import networks.FileProtocol;
+import networks.Tools;
 
 import java.io.*;
 import java.net.Socket;
 
 public class ClientMain {
 
+    private static Socket clientSocket;
+    private static BufferedReader in;
+    private static BufferedWriter out;
+
     public static void main(String[] args) {
         ArgsParser argsParser = new ArgsParser(args);
         FileProtocol fileProtocol = new FileProtocol(argsParser.getFilePath());
         try {
 
-            Socket clientSocket = new Socket("localhost", 4004);
+            clientSocket = new Socket(argsParser.getIp(), argsParser.getPort());
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
 
             System.out.println("Start loading " + fileProtocol.getMessage());
             out.write(fileProtocol.getMessage() + "\n");
@@ -23,8 +28,13 @@ public class ClientMain {
 
             String serverAnswer= in.readLine();
             System.out.println(serverAnswer);
-        } catch (
-                IOException e) {
+
+            out.write("quit");
+            out.flush();
+
+            Tools.closeSocketConnection(clientSocket, in, out);
+        } catch (IOException e) {
+            Tools.closeSocketConnection(clientSocket, in, out);
             System.err.println(e);
         }
     }

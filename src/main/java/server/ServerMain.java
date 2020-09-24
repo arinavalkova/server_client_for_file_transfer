@@ -1,8 +1,6 @@
 package server;
 
-import networks.FileProtocol;
-
-import java.io.*;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -10,26 +8,20 @@ public class ServerMain {
 
     public static void main(String[] args) {
         ArgsParser argsParser = new ArgsParser(args);
-        try {
-            ServerSocket server = new ServerSocket(4004);
 
-            while(true)
-            {
-                Socket clientSocket = server.accept();
-                
+        try (ServerSocket server = new ServerSocket(argsParser.getPort())) {
+            System.out.println("Server is starting working...");
 
-                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+            while (!server.isClosed()) {
+                Socket client = server.accept();
 
-                FileProtocol fileProtocol = new FileProtocol(in.readLine());
-                System.out.println("Loaded " + fileProtocol.getMessage());
+                System.out.println("Connection to "+ client.getInetAddress() + " " + client.getPort() + " accepted...");
 
-                out.write(fileProtocol.getMessage() + " has already loaded to server" + "\n");
-                out.flush();
+                Thread thread = new Thread(new ClientHandler(client));
+                thread.start();
             }
-
         } catch (IOException e) {
-            System.err.println(e);
+            e.printStackTrace();
         }
     }
 }

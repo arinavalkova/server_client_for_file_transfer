@@ -22,13 +22,13 @@ public class ClientMain {
             out = new DataOutputStream(clientSocket.getOutputStream());
 
             System.out.println("Start loading " + argsParser.getFilePath());
-            out.writeUTF(packet.getString());
+            out.write(packet.getBytes());
             out.flush();
 
-            String serverAnswer = in.readUTF();
-            System.out.println(serverAnswer);
+            byte[] serverAnswer = in.readAllBytes();
+            System.out.println(new String(serverAnswer));
 
-            out.writeUTF(new Packet("quit", Tools.Settings.SERVICE).getString());
+            out.write(new Packet("quit", Tools.Settings.SERVICE).getBytes());
             out.flush();
 
             Tools.closeSocketConnection(clientSocket, in, out);

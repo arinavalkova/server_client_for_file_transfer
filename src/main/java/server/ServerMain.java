@@ -6,6 +6,7 @@ import networks.Tools;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 
 public class ServerMain extends Thread {
     private Socket socket;
@@ -23,17 +24,17 @@ public class ServerMain extends Thread {
 
             String line = null;
             while(true) {
-                String entry = in.readUTF();
+                byte[] entry = in.readAllBytes();
                 if(entry != null)
-                    System.out.println("Loaded from " + socket.getInetAddress() + " " + socket.getPort() + " " + entry);
+                    System.out.println("Loaded from " + socket.getInetAddress() + " " + socket.getPort() + " " + new String(entry));
 
-                if (entry.equalsIgnoreCase("quit")) {
-                    out.writeUTF(new Packet("Server reply loading " + entry + " - OK" + "\n", Tools.Settings.SERVICE).getString());
+                if (Arrays.equals(entry, "quit".getBytes())) {
+                    out.write(new Packet("Server reply loading " + entry + " - OK" + "\n", Tools.Settings.SERVICE).getBytes());
                     out.flush();
                     break;
                 }
 
-                out.writeUTF(new Packet("Server reply loading " + entry + " - OK" + "\n", Tools.Settings.SERVICE).getString());
+                out.write(new Packet("Server reply loading " + entry + " - OK" + "\n", Tools.Settings.SERVICE).getBytes());
                 out.flush();
             }
         } catch(Exception e) {

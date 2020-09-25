@@ -37,38 +37,37 @@ public class MultiClient {
 
                     System.out.println("Start loading " + commandArray[1]);
 
-                    out.writeUTF(new Packet("loadToServer", Tools.Settings.SERVICE).getString());
-                    out.writeUTF(new Packet(commandArray[1], Tools.Settings.DATA).getString());
+                    out.write(new Packet("loadToServer", Tools.Settings.SERVICE).getBytes());
+                    out.write(new Packet(commandArray[1], Tools.Settings.DATA).getBytes());
                     out.flush();
 
-                    String serverAnswer = in.readUTF();
-                    System.out.println(serverAnswer);
+                    byte[] serverAnswer = in.readAllBytes();
+                    System.out.println(new String(serverAnswer));
 
                 } else if (commandArray[0].equals("quit")) {
 
-                    out.writeUTF(new Packet("quit", Tools.Settings.SERVICE).getString());
-                    out.flush();
+                    Tools.sendBytes(out, new Packet("quit", Tools.Settings.SERVICE));
 
-                    String message = in.readUTF();
-                    System.out.println(message);
+                    byte[] message = Tools.getBytes(in);
+                    System.out.println(new String(message));
                     break;
 
                 } else if (commandArray[0].equals("getServerFilesList")) {
 
-                    out.writeUTF(new Packet("getServerFilesList", Tools.Settings.SERVICE).getString());
+                    out.write(new Packet("getServerFilesList", Tools.Settings.SERVICE).getBytes());
                     out.flush();
 
-                    String fileList = in.readUTF();
-                    System.out.println(fileList);
+                    byte[] fileList = in.readAllBytes();
+                    System.out.println(new String(fileList));
 
                 } else if (commandArray[0].equals("loadFromServer")) {
 
-                    out.writeUTF(new Packet("loadFromServer", Tools.Settings.SERVICE).getString());
-                    out.writeUTF(new Packet(commandArray[1], Tools.Settings.SERVICE).getString());
+                    out.write(new Packet("loadFromServer", Tools.Settings.SERVICE).getBytes());
+                    out.write(new Packet(commandArray[1], Tools.Settings.SERVICE).getBytes());
                     out.flush();
 
-                    String file = in.readUTF();
-                    System.out.println(file);
+                    byte[] file = in.readAllBytes();
+                    System.out.println(new String(file));
 
                 } else {
 

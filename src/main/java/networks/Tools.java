@@ -1,12 +1,10 @@
 package networks;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 
 public class Tools {
-    private static void closeSocket(Socket socket){
+    private static void closeSocket(Socket socket) {
         System.out.println("Closed connection " + socket.getInetAddress() + " " + socket.getPort());
         try {
             socket.close();
@@ -15,17 +13,17 @@ public class Tools {
         }
     }
 
-    private static void closeBuffers(BufferedReader bufferedReader, BufferedWriter bufferedWriter){
+    private static void closeStreams(DataInputStream dataInputStream, DataOutputStream dataOutputStream) {
         try {
-            bufferedReader.close();
-            bufferedWriter.close();
+            dataInputStream.close();
+            dataOutputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static void closeSocketConnection(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter){
+    public static void closeSocketConnection(Socket socket, DataInputStream dataInputStream, DataOutputStream dataOutputStream) {
         closeSocket(socket);
-        closeBuffers(bufferedReader, bufferedWriter);
+        closeStreams(dataInputStream, dataOutputStream);
     }
 }

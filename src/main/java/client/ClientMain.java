@@ -9,8 +9,8 @@ import java.net.Socket;
 public class ClientMain {
 
     private static Socket clientSocket;
-    private static BufferedReader in;
-    private static BufferedWriter out;
+    private static DataInputStream in;
+    private static DataOutputStream out;
 
     public static void main(String[] args) {
         ArgsParser argsParser = new ArgsParser(args);
@@ -19,17 +19,17 @@ public class ClientMain {
 
             clientSocket = new Socket(argsParser.getIp(), argsParser.getPort());
 
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+            in = new DataInputStream(clientSocket.getInputStream());
+            out = new DataOutputStream(clientSocket.getOutputStream());
 
             System.out.println("Start loading " + fileProtocol.getMessage());
-            out.write(fileProtocol.getMessage() + "\n");
+            out.writeUTF(fileProtocol.getMessage());
             out.flush();
 
-            String serverAnswer= in.readLine();
+            String serverAnswer= in.readUTF();
             System.out.println(serverAnswer);
 
-            out.write("quit");
+            out.writeUTF("quit");
             out.flush();
 
             Tools.closeSocketConnection(clientSocket, in, out);

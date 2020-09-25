@@ -2,7 +2,6 @@ package client;
 
 import networks.FileProtocol;
 import networks.Tools;
-import org.w3c.dom.ls.LSOutput;
 
 import java.io.*;
 import java.net.Socket;
@@ -10,8 +9,8 @@ import java.net.Socket;
 public class MultiClient {
 
     private static Socket clientSocket;
-    private static BufferedReader in;
-    private static BufferedWriter out;
+    private static DataInputStream in;
+    private static DataOutputStream out;
     private static BufferedReader reader;
 
     public static void main(String[] args) {
@@ -19,8 +18,9 @@ public class MultiClient {
 
         try {
             clientSocket = new Socket(argsParser.getIp(), argsParser.getPort());
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+
+            in = new DataInputStream(clientSocket.getInputStream());
+            out = new DataOutputStream(clientSocket.getOutputStream());
             reader = new BufferedReader(new InputStreamReader(System.in));
         } catch (IOException e) {
             e.printStackTrace();
@@ -35,31 +35,32 @@ public class MultiClient {
                 if (commandArray[0].equals("loadToServer")) {
                     FileProtocol fileProtocol = new FileProtocol(commandArray[1]);
                     System.out.println("Start loading " + commandArray[1]);
-                    out.write("loadToServer");
-                    out.write(fileProtocol.getMessage() + "\n");
+                    out.writeUTF("loadToServer");
+                    out.writeUTF(fileProtocol.getMessage());
                     out.flush();
 
-                    String serverAnswer = in.readLine();
+                    String serverAnswer = in.readUTF();
                     System.out.println(serverAnswer);
                 } else if (commandArray[0].equals("quit")) {
-                    out.write("quit" + "\n");
+                    out.writeUTF("quit");
                     out.flush();
 
-                    String message = in.readLine();
+                    String message = in.readUTF();
                     System.out.println(message);
                     break;
                 } else if (commandArray[0].equals("getServerFilesList")) {
-                    out.write("getServerFilesList" + "\n");
+                    out.writeUTF("getServerFilesList");
                     out.flush();
 
-                    String fileList = in.readLine();
+                    String fileList = in.readUTF();
                     System.out.println(fileList);
                     printFileList(fileList);
                 } else if (commandArray[0].equals("loadFromServer")) {
-                    out.write("loadFromServer " + commandArray[1]);
+                    out.writeUTF("loadFromServer");
+                    out.writeUTF(commandArray[1]);
                     out.flush();
 
-                    String file = in.readLine();
+                    String file = in.readUTF();
                     System.out.println(file);
                 } else {
                     System.out.println("Bad command. Try again!");

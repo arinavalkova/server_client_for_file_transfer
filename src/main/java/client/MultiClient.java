@@ -1,6 +1,6 @@
 package client;
 
-import networks.FileProtocol;
+import networks.Packet;
 import networks.Tools;
 
 import java.io.*;
@@ -22,6 +22,7 @@ public class MultiClient {
             in = new DataInputStream(clientSocket.getInputStream());
             out = new DataOutputStream(clientSocket.getOutputStream());
             reader = new BufferedReader(new InputStreamReader(System.in));
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -33,37 +34,46 @@ public class MultiClient {
                 String[] commandArray = command.split(" ");
 
                 if (commandArray[0].equals("loadToServer")) {
-                    FileProtocol fileProtocol = new FileProtocol(commandArray[1]);
+
                     System.out.println("Start loading " + commandArray[1]);
-                    out.writeUTF("loadToServer");
-                    out.writeUTF(fileProtocol.getMessage());
+
+                    out.writeUTF(new Packet("loadToServer", Tools.Settings.SERVICE).getString());
+                    out.writeUTF(new Packet(commandArray[1], Tools.Settings.DATA).getString());
                     out.flush();
 
                     String serverAnswer = in.readUTF();
                     System.out.println(serverAnswer);
+
                 } else if (commandArray[0].equals("quit")) {
-                    out.writeUTF("quit");
+
+                    out.writeUTF(new Packet("quit", Tools.Settings.SERVICE).getString());
                     out.flush();
 
                     String message = in.readUTF();
                     System.out.println(message);
                     break;
+
                 } else if (commandArray[0].equals("getServerFilesList")) {
-                    out.writeUTF("getServerFilesList");
+
+                    out.writeUTF(new Packet("getServerFilesList", Tools.Settings.SERVICE).getString());
                     out.flush();
 
                     String fileList = in.readUTF();
                     System.out.println(fileList);
-                    printFileList(fileList);
+
                 } else if (commandArray[0].equals("loadFromServer")) {
-                    out.writeUTF("loadFromServer");
-                    out.writeUTF(commandArray[1]);
+
+                    out.writeUTF(new Packet("loadFromServer", Tools.Settings.SERVICE).getString());
+                    out.writeUTF(new Packet(commandArray[1], Tools.Settings.SERVICE).getString());
                     out.flush();
 
                     String file = in.readUTF();
                     System.out.println(file);
+
                 } else {
+
                     System.out.println("Bad command. Try again!");
+
                 }
             } catch (IOException e) {
                 Tools.closeSocketConnection(clientSocket, in, out);
@@ -71,9 +81,5 @@ public class MultiClient {
             }
         }
         Tools.closeSocketConnection(clientSocket, in, out);
-    }
-
-    private static void printFileList(String fileList) {
-
     }
 }

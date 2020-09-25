@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.Socket;
 
 public class Tools {
+
     private static void closeSocket(Socket socket) {
         System.out.println("Closed connection " + socket.getInetAddress() + " " + socket.getPort());
         try {
@@ -25,5 +26,14 @@ public class Tools {
     public static void closeSocketConnection(Socket socket, DataInputStream dataInputStream, DataOutputStream dataOutputStream) {
         closeSocket(socket);
         closeStreams(dataInputStream, dataOutputStream);
+    }
+
+    public static String createPacket(String fileName, Tools.Settings settings) {
+       return fileName;
+    }
+
+    public enum Settings {
+        SERVICE,
+        DATA
     }
 }

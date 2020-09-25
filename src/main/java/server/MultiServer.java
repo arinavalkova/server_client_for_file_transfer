@@ -1,5 +1,8 @@
 package server;
 
+import networks.Packet;
+import networks.Tools;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -13,6 +16,7 @@ public class MultiServer extends Thread {
         this.socket = socket;
         start();
     }
+
     public void run() {
         try {
             DataInputStream in = new DataInputStream (socket.getInputStream());
@@ -24,7 +28,7 @@ public class MultiServer extends Thread {
                 if (line.equals("quit")) {
 
                     System.out.println("Gotten quit from " + socket.getInetAddress() + " " + socket.getPort());
-                    out.writeUTF("Server reply " + line + " - OK" + "\n");
+                    out.writeUTF(new Packet("Server reply " + line + " - OK" + "\n", Tools.Settings.SERVICE).getString());
                     out.flush();
                     break;
 
@@ -33,12 +37,13 @@ public class MultiServer extends Thread {
                     String message = in.readUTF();
                     saveFile(message);
                     System.out.println(message + " loaded to server...");
-                    out.writeUTF(message + " was successful loaded to server...");
+                    out.writeUTF(new Packet(message + " was successful loaded to server...", Tools.Settings.SERVICE).getString());
 
                 } else if(line.equals("getServerFilesList")) {
 
                     System.out.println("Sending file list to " + socket.getInetAddress() + " " + socket.getPort());
-                    out.writeUTF("----file list------" + "\n");
+                    String fileList = getFileList();
+                    out.writeUTF(new Packet(fileList, Tools.Settings.SERVICE).getString());
                     out.flush();
                     System.out.println("File list has sent to " + socket.getInetAddress() + " " + socket.getPort());
 
@@ -48,10 +53,10 @@ public class MultiServer extends Thread {
                     File file = findFile(fileName);
                     System.out.println("Client " + socket.getInetAddress() + " " + socket.getPort() + " tried to get " + fileName);
                     if(file != null) {
-                        out.writeUTF("File found");
+                        out.writeUTF(new Packet("File found", Tools.Settings.SERVICE).getString());
                     }
                     else {
-                        out.writeUTF("File not found");
+                        out.writeUTF(new Packet("File not found", Tools.Settings.SERVICE).getString());
                     }
                     out.flush();
 
@@ -62,6 +67,17 @@ public class MultiServer extends Thread {
         } catch(Exception e) {
             System.out.println("Exception : " + e);
         }
+    }
+
+    private String getFileList() {
+        File[] files = file.listFiles();
+        String fileList = "";
+
+        for (File value : files) {
+            fileList += value.getName() + " ";
+        }
+
+        return fileList;
     }
 
     public static void main(String[] args) {
@@ -84,7 +100,6 @@ public class MultiServer extends Thread {
         File[] files = file.listFiles();
 
         for (File value : files) {
-            System.out.println(value.getName());
             if(value.getName().equals(fileName)){
                 return value;
             }

@@ -1,6 +1,6 @@
 package client;
 
-import networks.FileProtocol;
+import networks.Packet;
 import networks.Tools;
 
 import java.io.*;
@@ -14,22 +14,21 @@ public class ClientMain {
 
     public static void main(String[] args) {
         ArgsParser argsParser = new ArgsParser(args);
-        FileProtocol fileProtocol = new FileProtocol(argsParser.getFilePath());
+        Packet packet = new Packet(argsParser.getFilePath(), Tools.Settings.DATA);
         try {
-
             clientSocket = new Socket(argsParser.getIp(), argsParser.getPort());
 
             in = new DataInputStream(clientSocket.getInputStream());
             out = new DataOutputStream(clientSocket.getOutputStream());
 
-            System.out.println("Start loading " + fileProtocol.getMessage());
-            out.writeUTF(fileProtocol.getMessage());
+            System.out.println("Start loading " + argsParser.getFilePath());
+            out.writeUTF(packet.getString());
             out.flush();
 
-            String serverAnswer= in.readUTF();
+            String serverAnswer = in.readUTF();
             System.out.println(serverAnswer);
 
-            out.writeUTF("quit");
+            out.writeUTF(new Packet("quit", Tools.Settings.SERVICE).getString());
             out.flush();
 
             Tools.closeSocketConnection(clientSocket, in, out);

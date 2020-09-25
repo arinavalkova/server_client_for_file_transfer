@@ -1,5 +1,8 @@
 package server;
 
+import networks.Packet;
+import networks.Tools;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -25,12 +28,12 @@ public class ServerMain extends Thread {
                     System.out.println("Loaded from " + socket.getInetAddress() + " " + socket.getPort() + " " + entry);
 
                 if (entry.equalsIgnoreCase("quit")) {
-                    out.writeUTF("Server reply loading " + entry + " - OK" + "\n");
+                    out.writeUTF(new Packet("Server reply loading " + entry + " - OK" + "\n", Tools.Settings.SERVICE).getString());
                     out.flush();
                     break;
                 }
 
-                out.writeUTF("Server reply loading " + entry + " - OK" + "\n");
+                out.writeUTF(new Packet("Server reply loading " + entry + " - OK" + "\n", Tools.Settings.SERVICE).getString());
                 out.flush();
             }
         } catch(Exception e) {
@@ -52,18 +55,6 @@ public class ServerMain extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private File findFile(String fileName) {
-
-        File[] files = file.listFiles();
-
-        for (File value : files) {
-            if(value.getName().equals(fileName)){
-                return value;
-            }
-        }
-        return null;
     }
 
     private void saveFile(String message) {

@@ -1,7 +1,5 @@
 package networks;
 
-import client.MultiClient;
-
 public class Packet {
     enum Settings {
         SERVICE,

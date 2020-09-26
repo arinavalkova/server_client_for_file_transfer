@@ -3,10 +3,12 @@ package server;
 import networks.Packet;
 import networks.Tools;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
 
 public class MultiServer extends Thread {
     private  Socket socket;
@@ -35,31 +37,30 @@ public class MultiServer extends Thread {
 
                 } else if (line.equals("loadToServer")) {
 
-                    byte[] message = in.readAllBytes();
+                    byte[] message = Tools.getBytes(in);
                     saveFile(message);
                     System.out.println(new String(message) + " loaded to server...");
-                    out.write(new Packet(new String(message) + " was successful loaded to server...", Tools.Settings.SERVICE).getBytes());
+                    Tools.sendBytes(out, new Packet(new String(message) + " was successful loaded to server...", Tools.Settings.SERVICE));
 
                 } else if(line.equals("getServerFilesList")) {
 
                     System.out.println("Sending file list to " + socket.getInetAddress() + " " + socket.getPort());
                     String fileList = getFileList();
-                    out.write(new Packet(fileList, Tools.Settings.SERVICE).getBytes());
-                    out.flush();
+                    Tools.sendBytes(out, new Packet(fileList, Tools.Settings.SERVICE));
+
                     System.out.println("File list has sent to " + socket.getInetAddress() + " " + socket.getPort());
 
                 } else if(line.equals("loadFromServer")) {
 
-                    byte[] fileName = in.readAllBytes();
+                    byte[] fileName = Tools.getBytes(in);
                     File file = findFile(fileName);
                     System.out.println("Client " + socket.getInetAddress() + " " + socket.getPort() + " tried to get " + new String(fileName));
                     if(file != null) {
-                        out.write(new Packet("File found", Tools.Settings.SERVICE).getBytes());
+                        Tools.sendBytes(out, new Packet("File found", Tools.Settings.SERVICE));
                     }
                     else {
-                        out.write(new Packet("File not found", Tools.Settings.SERVICE).getBytes());
+                        Tools.sendBytes(out, new Packet("File not found", Tools.Settings.SERVICE));
                     }
-                    out.flush();
 
                 } else {
                     System.out.println("Bad command");
@@ -99,9 +100,10 @@ public class MultiServer extends Thread {
 
     private File findFile(byte[] fileName) {
         File[] files = file.listFiles();
+        String fileNameString = new String(fileName);
 
         for (File value : files) {
-            if(value.getName().equals(fileName)){
+            if(value.getName().equals(fileNameString)){
                 return value;
             }
         }

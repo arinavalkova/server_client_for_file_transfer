@@ -14,7 +14,7 @@ public class ClientMain {
 
     public static void main(String[] args) {
         ArgsParser argsParser = new ArgsParser(args);
-        Packet packet = new Packet(argsParser.getFilePath(), Tools.Settings.DATA);
+        Packet packet = new Packet(argsParser.getFilePath().getBytes());
         try {
             clientSocket = new Socket(argsParser.getIp(), argsParser.getPort());
 
@@ -22,12 +22,12 @@ public class ClientMain {
             out = new DataOutputStream(clientSocket.getOutputStream());
 
             System.out.println("Start loading " + argsParser.getFilePath());
-            Tools.sendBytes(out, packet);
+            Tools.sendBytes(out, packet.getBytes(), Tools.Settings.SERVICE);
 
-            byte[] serverAnswer = Tools.getBytes(in);
+            byte[] serverAnswer = Tools.getBytes(in, Tools.Settings.SERVICE);
             System.out.println(new String(serverAnswer));
 
-            Tools.sendBytes(out, new Packet("quit", Tools.Settings.SERVICE));
+            Tools.sendBytes(out, new Packet("quit".getBytes()).getBytes(), Tools.Settings.SERVICE);
 
             Tools.closeSocketConnection(clientSocket, in, out);
         } catch (IOException e) {

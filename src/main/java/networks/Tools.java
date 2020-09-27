@@ -1,13 +1,9 @@
 package networks;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
-import java.util.LinkedList;
-import java.util.List;
-import org.apache.commons.lang3.ArrayUtils;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class Tools {
 
@@ -34,22 +30,47 @@ public class Tools {
         closeStreams(dataInputStream, dataOutputStream);
     }
 
-    public static byte[] createPacket(String fileName, Settings settings) {
-        if(settings.equals(Settings.SERVICE)) {
-            return fileName.getBytes();
+    public static byte[] createHeader(byte[] pathName) {
+        String pathNameString = new String(pathName);
+        File file = new File(pathNameString);
+
+        byte[] hash = getHash(pathNameString);
+        byte[] fileName  = file.getName().getBytes();
+
+        byte[] header = new byte[1 + fileName.length + 1 + hash.length];
+
+        int i;
+        header[0] = (byte) file.getName().length();
+
+        for(i = 1; i <= fileName.length; i++) {
+            header[i] = fileName[i - 1];
         }
-        else {
-            return buildDataPacket(fileName);
+
+        header[i++] = (byte) hash.length;
+
+        for(int j = i, k = 0; j < i + hash.length; j++, k++) {
+            header[j] = hash[k];
         }
+
+        return header;
     }
 
-    private static byte[] buildDataPacket(String pathName) {
-        byte[] header = createHeader(pathName);
-        byte[]
-    }
+    private static byte[] getHash(String pathNameString) {
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("MD5");
+            FileInputStream fis = new FileInputStream(pathNameString);
 
-    private static byte[] createHeader(String pathName) {
-        return new byte[0];
+            byte[] dataBytes = new byte[1024];
+
+            int nread = 0;
+            while ((nread = fis.read(dataBytes)) != -1) {
+                md.update(dataBytes, 0, nread);
+            }
+        } catch (NoSuchAlgorithmException | IOException e) {
+            e.printStackTrace();
+        }
+        return md.digest();
     }
 
     public enum Settings {
@@ -57,7 +78,53 @@ public class Tools {
         DATA
     }
 
-    public static void sendBytes(DataOutputStream out, Packet packet) {
+    public static void sendBytes(DataOutputStream out, byte[] array, Settings settings) {
+
+        if (settings.equals(Settings.SERVICE)) {
+            sendPacket(out, new Packet(array));
+        } else {
+            sendFile(out, array);
+        }
+    }
+
+    private static void sendFile(DataOutputStream out, byte[] array) {
+        sendPacket(out, new Packet(createHeader(array)));
+
+        String fileName = new String(array);
+        File file = new File(fileName);
+        long fileLength = file.length();
+
+        try {
+            FileInputStream fileInputStream = new FileInputStream(fileName);
+
+            long currentFileLength = fileLength;
+            while(currentFileLength > 0) {
+                if (currentFileLength < 1024) {
+                    sendPacket(out, new Packet(readBytes(fileInputStream, currentFileLength)));
+                    break;
+                }
+                sendPacket(out, new Packet(readBytes(fileInputStream, 1024)));
+                currentFileLength -= 1024;
+            }
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static byte[] readBytes(FileInputStream fileInputStream, long length) {
+        byte[] answer = new byte[(int) length];
+        try {
+            for (int i = 0; i < length; i++) {
+                answer[i] = (byte) fileInputStream.read();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return answer;
+    }
+
+    private static void sendPacket(DataOutputStream out, Packet packet) {
         try {
             out.write(packet.getPacketLength());
             out.write(packet.getBytes());
@@ -67,7 +134,19 @@ public class Tools {
         }
     }
 
-    public static byte[] getBytes(DataInputStream in) {
+    public static byte[] getBytes(DataInputStream in, Tools.Settings settings) {
+        if (settings.equals(Settings.SERVICE)) {
+            return getPacket(in);
+        } else {
+            return getFile(in);
+        }
+    }
+
+    private static byte[] getFile(DataInputStream in) {
+        return new byte[0];
+    }
+
+    public static byte[] getPacket(DataInputStream in) {
         try {
             int packetLength = in.read();
             return in.readNBytes(packetLength);

@@ -7,15 +7,15 @@ public class Packet {
     }
 
     private final int packetLength;
-    private final byte[] packet;
+    private final byte[] message;
 
-    public Packet(String message, Tools.Settings settings) {
-        packet = Tools.createPacket(message, settings);
-        packetLength = packet.length;
+    public Packet(byte[] message) {
+        this.message = message;
+        packetLength = message.length;
     }
 
     public byte[] getBytes() {
-        return packet;
+        return message;
     }
 
     public int getPacketLength() {

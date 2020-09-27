@@ -27,39 +27,39 @@ public class MultiServer extends Thread {
 
             String line;
             while(true) {
-                line = new String(Tools.getBytes(in));
+                line = new String(Tools.getBytes(in, Tools.Settings.SERVICE));
                 if (line.equals("quit")) {
 
                     System.out.println("Gotten quit from " + socket.getInetAddress() + " " + socket.getPort());
 
-                    Tools.sendBytes(out, new Packet("Server reply " + line + " - OK" + "\n", Tools.Settings.SERVICE));
+                    Tools.sendBytes(out, new Packet(("Server reply " + line + " - OK" + "\n").getBytes()).getBytes(), Tools.Settings.SERVICE);
                     break;
 
                 } else if (line.equals("loadToServer")) {
 
-                    byte[] message = Tools.getBytes(in);
+                    byte[] message = Tools.getBytes(in, Tools.Settings.DATA);
                     saveFile(message);
                     System.out.println(new String(message) + " loaded to server...");
-                    Tools.sendBytes(out, new Packet(new String(message) + " was successful loaded to server...", Tools.Settings.SERVICE));
+                    Tools.sendBytes(out, new Packet((new String(message) + " was successful loaded to server...").getBytes()).getBytes(), Tools.Settings.SERVICE);
 
                 } else if(line.equals("getServerFilesList")) {
 
                     System.out.println("Sending file list to " + socket.getInetAddress() + " " + socket.getPort());
                     String fileList = getFileList();
-                    Tools.sendBytes(out, new Packet(fileList, Tools.Settings.SERVICE));
+                    Tools.sendBytes(out, new Packet(fileList.getBytes()).getBytes(), Tools.Settings.SERVICE);
 
                     System.out.println("File list has sent to " + socket.getInetAddress() + " " + socket.getPort());
 
                 } else if(line.equals("loadFromServer")) {
 
-                    byte[] fileName = Tools.getBytes(in);
+                    byte[] fileName = Tools.getBytes(in, Tools.Settings.SERVICE);
                     File file = findFile(fileName);
                     System.out.println("Client " + socket.getInetAddress() + " " + socket.getPort() + " tried to get " + new String(fileName));
                     if(file != null) {
-                        Tools.sendBytes(out, new Packet("File found", Tools.Settings.SERVICE));
+                        Tools.sendBytes(out, new Packet("File found".getBytes()).getBytes(), Tools.Settings.SERVICE);
                     }
                     else {
-                        Tools.sendBytes(out, new Packet("File not found", Tools.Settings.SERVICE));
+                        Tools.sendBytes(out, new Packet("File not found".getBytes()).getBytes(), Tools.Settings.SERVICE);
                     }
 
                 } else {

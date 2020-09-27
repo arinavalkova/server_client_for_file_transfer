@@ -24,16 +24,16 @@ public class ServerMain extends Thread {
 
             String line = null;
             while(true) {
-                byte[] entry = Tools.getBytes(in);
+                byte[] entry = Tools.getBytes(in, Tools.Settings.SERVICE);
                 if(entry != null)
                     System.out.println("Loaded from " + socket.getInetAddress() + " " + socket.getPort() + " " + new String(entry));
 
                 if (Arrays.equals(entry, "quit".getBytes())) {
-                    Tools.sendBytes(out, new Packet("Server reply loading " + new String(entry) + " - OK" + "\n", Tools.Settings.SERVICE));
+                    Tools.sendBytes(out, new Packet(("Server reply loading " + new String(entry) + " - OK" + "\n").getBytes()).getBytes(), Tools.Settings.SERVICE);
                     break;
                 }
 
-                Tools.sendBytes(out, new Packet("Server reply loading " + new String(entry) + " - OK" + "\n", Tools.Settings.SERVICE));
+                Tools.sendBytes(out, new Packet(("Server reply loading " + new String(entry) + " - OK" + "\n").getBytes()).getBytes(), Tools.Settings.SERVICE);
             }
         } catch(Exception e) {
             System.out.println("Exception : " + e);

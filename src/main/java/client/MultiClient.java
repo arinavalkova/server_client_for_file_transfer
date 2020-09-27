@@ -41,25 +41,25 @@ public class MultiClient {
                     }
                     System.out.println("Start loading " + commandArray[1]);
 
-                    Tools.sendBytes(out, new Packet("loadToServer", Tools.Settings.SERVICE));
-                    Tools.sendBytes(out, new Packet(commandArray[1], Tools.Settings.DATA));
+                    Tools.sendBytes(out, "loadToServer".getBytes(), Tools.Settings.SERVICE);
+                    Tools.sendBytes(out, commandArray[1].getBytes(), Tools.Settings.DATA);
 
-                    byte[] serverAnswer = Tools.getBytes(in);
+                    byte[] serverAnswer = Tools.getBytes(in, Tools.Settings.SERVICE);
                     System.out.println(new String(serverAnswer));
 
                 } else if (commandArray[0].equals("quit")) {
 
-                    Tools.sendBytes(out, new Packet("quit", Tools.Settings.SERVICE));
+                    Tools.sendBytes(out,"quit".getBytes(), Tools.Settings.SERVICE);
 
-                    byte[] message = Tools.getBytes(in);
+                    byte[] message = Tools.getBytes(in, Tools.Settings.SERVICE);
                     System.out.println(new String(message));
                     break;
 
                 } else if (commandArray[0].equals("getServerFilesList")) {
 
-                    Tools.sendBytes(out, new Packet("getServerFilesList", Tools.Settings.SERVICE));
+                    Tools.sendBytes(out, "getServerFilesList".getBytes(), Tools.Settings.SERVICE);
 
-                    byte[] fileList = Tools.getBytes(in);
+                    byte[] fileList = Tools.getBytes(in, Tools.Settings.SERVICE);
                     System.out.println(new String(fileList));
 
                 } else if (commandArray[0].equals("loadFromServer")) {
@@ -69,10 +69,10 @@ public class MultiClient {
                         continue;
                     }
 
-                    Tools.sendBytes(out, new Packet("loadFromServer", Tools.Settings.SERVICE));
-                    Tools.sendBytes(out, new Packet(commandArray[1], Tools.Settings.SERVICE));
+                    Tools.sendBytes(out, "loadFromServer".getBytes(), Tools.Settings.SERVICE);
+                    Tools.sendBytes(out, commandArray[1].getBytes(), Tools.Settings.SERVICE);
 
-                    byte[] file = Tools.getBytes(in);
+                    byte[] file = Tools.getBytes(in, Tools.Settings.DATA);
                     System.out.println(new String(file));
 
                 } else {

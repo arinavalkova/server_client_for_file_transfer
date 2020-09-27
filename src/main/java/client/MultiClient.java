@@ -1,5 +1,6 @@
 package client;
 
+import networks.Header;
 import networks.Packet;
 import networks.Tools;
 
@@ -70,7 +71,7 @@ public class MultiClient {
                     }
 
                     Tools.sendBytes(out, "loadFromServer".getBytes(), Tools.Settings.SERVICE);
-                    Tools.sendBytes(out, commandArray[1].getBytes(), Tools.Settings.SERVICE);
+                    Tools.sendBytes(out, commandArray[1].getBytes(), Tools.Settings.SERVICE);//////////////
 
                     byte[] file = Tools.getBytes(in, Tools.Settings.DATA);
                     System.out.println(new String(file));

@@ -37,7 +37,7 @@ public class Tools {
         byte[] hash = getHash(pathNameString);
         byte[] fileName  = file.getName().getBytes();
 
-        byte[] header = new byte[1 + fileName.length + 1 + hash.length];
+        byte[] header = new byte[1 + fileName.length + 1 + hash.length + 1];
 
         int i;
         header[0] = (byte) file.getName().length();
@@ -48,9 +48,12 @@ public class Tools {
 
         header[i++] = (byte) hash.length;
 
-        for(int j = i, k = 0; j < i + hash.length; j++, k++) {
+        int j, k;
+        for(j = i, k = 0; j < i + hash.length; j++, k++) {
             header[j] = hash[k];
         }
+
+        header[j] = (byte) (file.length() % 1024 == 0 ? file.length() / 1024 : file.length() / 1024 + 1);
 
         return header;
     }
@@ -143,7 +146,38 @@ public class Tools {
     }
 
     private static byte[] getFile(DataInputStream in) {
-        return new byte[0];
+        byte[] headerArray = getPacket(in);
+
+        Header header = new Header(headerArray);
+
+
+
+
+
+//        sendPacket(out, new Packet(createHeader(array)));
+//
+//        String fileName = new String(array);
+//        File file = new File(fileName);
+//        long fileLength = file.length();
+//
+//        try {
+//            FileInputStream fileInputStream = new FileInputStream(fileName);
+//
+//            long currentFileLength = fileLength;
+//            while(currentFileLength > 0) {
+//                if (currentFileLength < 1024) {
+//                    sendPacket(out, new Packet(readBytes(fileInputStream, currentFileLength)));
+//                    break;
+//                }
+//                sendPacket(out, new Packet(readBytes(fileInputStream, 1024)));
+//                currentFileLength -= 1024;
+//            }
+//
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
+
+        return null;
     }
 
     public static byte[] getPacket(DataInputStream in) {

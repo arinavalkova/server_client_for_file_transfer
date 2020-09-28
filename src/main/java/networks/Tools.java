@@ -107,7 +107,10 @@ public class Tools {
                     sendPacket(out, new Packet(readBytes(fileInputStream, currentFileLength)));
                     break;
                 }
-                sendPacket(out, new Packet(readBytes(fileInputStream, 1024)));
+
+                Packet packet = new Packet(readBytes(fileInputStream, 1024));
+                sendPacket(out, packet);
+
                 currentFileLength -= 1024;
             }
 
@@ -157,7 +160,9 @@ public class Tools {
             FileOutputStream fileOutputStream = new FileOutputStream(file);
 
             for(int i = 0; i < header.getCountOfPackets(); i++) {
-                fileOutputStream.write(getPacket(in));
+                byte[] a = getPacket(in);
+                System.out.println("((" + a.length + "))");
+                fileOutputStream.write(a);
             }
 
             fileOutputStream.close();
@@ -171,6 +176,7 @@ public class Tools {
         if (Arrays.equals(hashGottenFile, header.getFileHash())) {
             return header.getFileName().getBytes();
         } else {
+            System.out.println("Hashes are not the same");
             file.delete();
             return null;
         }

@@ -46,7 +46,7 @@ public class MultiClient {
                         continue;
                     }
 
-                    System.out.println("Start loading " + commandArray[1]);
+                    System.out.println("Start uploading " + commandArray[1]);
 
                     Tools.sendBytes(out, "loadToServer".getBytes(), Tools.Settings.SERVICE);
                     Tools.sendBytes(out, commandArray[1].getBytes(), Tools.Settings.DATA);
@@ -77,18 +77,21 @@ public class MultiClient {
                     }
 
                     Tools.sendBytes(out, "loadFromServer".getBytes(), Tools.Settings.SERVICE);
-                    Tools.sendBytes(out, commandArray[1].getBytes(), Tools.Settings.SERVICE);//////////////
+                    Tools.sendBytes(out, commandArray[1].getBytes(), Tools.Settings.SERVICE);
 
-                    byte[] fileName = Tools.getBytes(in, Tools.Settings.DATA, Consts.defaultMultiClientPath);
-                    if(fileName != null) {
-                        System.out.println(new String(fileName) + " successfully loaded from server!");
+                    byte[] answer = Tools.getBytes(in, Tools.Settings.SERVICE, null);
+                    if(new String(answer).equals("found")) {
+                        byte[] fileName = Tools.getBytes(in, Tools.Settings.DATA, Consts.defaultMultiClientPath);
+                        if(fileName == null) {
+                            System.out.println("Problems with loading file " + commandArray[1]);
+                        } else {
+                            System.out.println(new String(fileName) + " successfully loaded from server!");
+                        }
                     } else {
-                        System.out.println(commandArray[1] + " can't upload from server. Try again!");
+                        System.out.println(commandArray[1] + " not found on server and can't upload from server. Try again!");
                     }
                 } else {
-
                     System.out.println("Bad command. Try again!");
-
                 }
             } catch (IOException e) {
                 Tools.closeSocketConnection(clientSocket, in, out);

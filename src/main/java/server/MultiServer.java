@@ -33,27 +33,26 @@ public class MultiServer extends Thread {
 
                     System.out.println("Gotten quit from " + socket.getInetAddress() + " " + socket.getPort());
 
-                    Tools.sendBytes(out, new Packet(("Server reply " + line + " - OK" + "\n").getBytes()).getBytes(), Tools.Settings.SERVICE);
+                    Tools.sendBytes(out, ("Server reply " + line + " - OK" + "\n").getBytes(), Tools.Settings.SERVICE);
                     break;
-
                 } else if (line.equals("loadToServer")) {
 
                     byte[] message = Tools.getBytes(in, Tools.Settings.DATA, Consts.defaultMultiServerPath);
 
                     if(message != null) {
                         System.out.println(new String(message) + " successfully loaded to server!");
-                        Tools.sendBytes(out, new Packet((new String(message) + " was successful loaded to server...").getBytes()).getBytes(), Tools.Settings.SERVICE);
+                        Tools.sendBytes(out, (new String(message) + " was successful loaded to server...").getBytes(), Tools.Settings.SERVICE);
 
                     } else {
                         System.out.println("File wanted to upload to the server but something went wrong");
-                        Tools.sendBytes(out, new Packet((new String(message) + " had problems to upload to the server. Try again...").getBytes()).getBytes(), Tools.Settings.SERVICE);
+                        Tools.sendBytes(out, ("Problems to upload to the server. Try again...").getBytes(), Tools.Settings.SERVICE);
 
                     }
                 } else if(line.equals("getServerFilesList")) {
 
                     System.out.println("Sending file list to " + socket.getInetAddress() + " " + socket.getPort());
                     String fileList = getFileList();
-                    Tools.sendBytes(out, new Packet(fileList.getBytes()).getBytes(), Tools.Settings.SERVICE);
+                    Tools.sendBytes(out, fileList.getBytes(), Tools.Settings.SERVICE);
 
                     System.out.println("File list has sent to " + socket.getInetAddress() + " " + socket.getPort());
 
@@ -63,12 +62,14 @@ public class MultiServer extends Thread {
                     File file = findFile(fileName);
                     System.out.println("Client " + socket.getInetAddress() + " " + socket.getPort() + " tried to get " + new String(fileName));
                     if(file != null) {
-                        Tools.sendBytes(out, new Packet("File found".getBytes()).getBytes(), Tools.Settings.SERVICE);
+                        System.out.println(new String(fileName) + " found and can be uploaded!");
+                        Tools.sendBytes(out, "found".getBytes(), Tools.Settings.SERVICE);
+                        Tools.sendBytes(out, (Consts.defaultMultiServerPath + new String(fileName)).getBytes(), Tools.Settings.DATA);
                     }
                     else {
-                        Tools.sendBytes(out, new Packet("File not found".getBytes()).getBytes(), Tools.Settings.SERVICE);
+                        System.out.println(new String(fileName) + " not found and can't be uploaded!");
+                        Tools.sendBytes(out, "not found".getBytes(), Tools.Settings.SERVICE);
                     }
-
                 } else {
                     System.out.println("Bad command");
                 }

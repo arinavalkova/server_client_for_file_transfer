@@ -24,7 +24,7 @@ public class ServerMain extends Thread {
 
             String line = null;
             while(true) {
-                byte[] entry = Tools.getBytes(in, Tools.Settings.SERVICE);
+                byte[] entry = Tools.getBytes(in, Tools.Settings.SERVICE, null);
                 if(entry != null)
                     System.out.println("Loaded from " + socket.getInetAddress() + " " + socket.getPort() + " " + new String(entry));
 

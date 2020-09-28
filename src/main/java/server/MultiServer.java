@@ -1,5 +1,6 @@
 package server;
 
+import networks.Consts;
 import networks.Packet;
 import networks.Tools;
 
@@ -27,7 +28,7 @@ public class MultiServer extends Thread {
 
             String line;
             while(true) {
-                line = new String(Tools.getBytes(in, Tools.Settings.SERVICE));
+                line = new String(Tools.getBytes(in, Tools.Settings.SERVICE, null));
                 if (line.equals("quit")) {
 
                     System.out.println("Gotten quit from " + socket.getInetAddress() + " " + socket.getPort());
@@ -37,11 +38,17 @@ public class MultiServer extends Thread {
 
                 } else if (line.equals("loadToServer")) {
 
-                    byte[] message = Tools.getBytes(in, Tools.Settings.DATA);
-                    saveFile(message);
-                    System.out.println(new String(message) + " loaded to server...");
-                    Tools.sendBytes(out, new Packet((new String(message) + " was successful loaded to server...").getBytes()).getBytes(), Tools.Settings.SERVICE);
+                    byte[] message = Tools.getBytes(in, Tools.Settings.DATA, Consts.defaultMultiServerPath);
 
+                    if(message != null) {
+                        System.out.println(new String(message) + " successfully loaded to server!");
+                        Tools.sendBytes(out, new Packet((new String(message) + " was successful loaded to server...").getBytes()).getBytes(), Tools.Settings.SERVICE);
+
+                    } else {
+                        System.out.println("File wanted to upload to the server but something went wrong");
+                        Tools.sendBytes(out, new Packet((new String(message) + " had problems to upload to the server. Try again...").getBytes()).getBytes(), Tools.Settings.SERVICE);
+
+                    }
                 } else if(line.equals("getServerFilesList")) {
 
                     System.out.println("Sending file list to " + socket.getInetAddress() + " " + socket.getPort());
@@ -52,7 +59,7 @@ public class MultiServer extends Thread {
 
                 } else if(line.equals("loadFromServer")) {
 
-                    byte[] fileName = Tools.getBytes(in, Tools.Settings.SERVICE);
+                    byte[] fileName = Tools.getBytes(in, Tools.Settings.SERVICE, null);
                     File file = findFile(fileName);
                     System.out.println("Client " + socket.getInetAddress() + " " + socket.getPort() + " tried to get " + new String(fileName));
                     if(file != null) {

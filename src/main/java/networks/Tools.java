@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 public class Tools {
 
@@ -35,21 +36,21 @@ public class Tools {
         File file = new File(pathNameString);
 
         byte[] hash = getHash(pathNameString);
-        byte[] fileName  = file.getName().getBytes();
+        byte[] fileName = file.getName().getBytes();
 
         byte[] header = new byte[1 + fileName.length + 1 + hash.length + 1];
 
         int i;
         header[0] = (byte) file.getName().length();
 
-        for(i = 1; i <= fileName.length; i++) {
+        for (i = 1; i <= fileName.length; i++) {
             header[i] = fileName[i - 1];
         }
 
         header[i++] = (byte) hash.length;
 
         int j, k;
-        for(j = i, k = 0; j < i + hash.length; j++, k++) {
+        for (j = i, k = 0; j < i + hash.length; j++, k++) {
             header[j] = hash[k];
         }
 
@@ -101,7 +102,7 @@ public class Tools {
             FileInputStream fileInputStream = new FileInputStream(fileName);
 
             long currentFileLength = fileLength;
-            while(currentFileLength > 0) {
+            while (currentFileLength > 0) {
                 if (currentFileLength < 1024) {
                     sendPacket(out, new Packet(readBytes(fileInputStream, currentFileLength)));
                     break;
@@ -137,47 +138,42 @@ public class Tools {
         }
     }
 
-    public static byte[] getBytes(DataInputStream in, Tools.Settings settings) {
+    public static byte[] getBytes(DataInputStream in, Tools.Settings settings, String path) {
         if (settings.equals(Settings.SERVICE)) {
             return getPacket(in);
         } else {
-            return getFile(in);
+            return getFile(in, path);
         }
     }
 
-    private static byte[] getFile(DataInputStream in) {
+    private static byte[] getFile(DataInputStream in, String path) {
         byte[] headerArray = getPacket(in);
 
         Header header = new Header(headerArray);
 
+        File file = new File(path + header.getFileName());
+
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+
+            for(int i = 0; i < header.getCountOfPackets(); i++) {
+                fileOutputStream.write(getPacket(in));
+            }
+
+            fileOutputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
+        byte[] hashGottenFile = Tools.getHash(path + header.getFileName());
 
-
-//        sendPacket(out, new Packet(createHeader(array)));
-//
-//        String fileName = new String(array);
-//        File file = new File(fileName);
-//        long fileLength = file.length();
-//
-//        try {
-//            FileInputStream fileInputStream = new FileInputStream(fileName);
-//
-//            long currentFileLength = fileLength;
-//            while(currentFileLength > 0) {
-//                if (currentFileLength < 1024) {
-//                    sendPacket(out, new Packet(readBytes(fileInputStream, currentFileLength)));
-//                    break;
-//                }
-//                sendPacket(out, new Packet(readBytes(fileInputStream, 1024)));
-//                currentFileLength -= 1024;
-//            }
-//
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        }
-
-        return null;
+        if (Arrays.equals(hashGottenFile, header.getFileHash())) {
+            return header.getFileName().getBytes();
+        } else {
+            file.delete();
+            return null;
+        }
     }
 
     public static byte[] getPacket(DataInputStream in) {

@@ -2,6 +2,7 @@ package networks;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -38,23 +39,28 @@ public class Tools {
         byte[] hash = getHash(pathNameString);
         byte[] fileName = file.getName().getBytes();
 
-        byte[] header = new byte[1 + fileName.length + 1 + hash.length + 1];
+        byte[] header = new byte[Integer.BYTES + fileName.length + Integer.BYTES + hash.length + Integer.BYTES];
 
-        int i;
-        header[0] = (byte) file.getName().length();
+        int i = 0;
+        System.arraycopy(ByteBuffer.allocate(Integer.BYTES).putInt(fileName.length).array(), 0, header, i, Integer.BYTES);
 
-        for (i = 1; i <= fileName.length; i++) {
-            header[i] = fileName[i - 1];
-        }
+        i += Integer.BYTES;
 
-        header[i++] = (byte) hash.length;
+        System.arraycopy(fileName, 0, header, i, fileName.length);
 
-        int j, k;
-        for (j = i, k = 0; j < i + hash.length; j++, k++) {
-            header[j] = hash[k];
-        }
+        i += fileName.length;
 
-        header[j] = (byte) (file.length() % 1024 == 0 ? file.length() / 1024 : file.length() / 1024 + 1);
+        System.arraycopy(ByteBuffer.allocate(Integer.BYTES).putInt(hash.length).array(), 0, header, i, Integer.BYTES);
+
+        i += Integer.BYTES;
+
+        System.arraycopy(hash, 0, header, i, hash.length);
+
+        i += hash.length;
+
+        int fileLength = (int) (file.length() % Consts.bufferSize == 0 ? file.length() / Consts.bufferSize : file.length() / Consts.bufferSize + 1);
+
+        System.arraycopy(ByteBuffer.allocate(Integer.BYTES).putInt(fileLength).array(), 0, header, i, Integer.BYTES);
 
         return header;
     }
@@ -103,15 +109,15 @@ public class Tools {
 
             long currentFileLength = fileLength;
             while (currentFileLength > 0) {
-                if (currentFileLength < 1024) {
+                if (currentFileLength < Consts.bufferSize) {
                     sendPacket(out, new Packet(readBytes(fileInputStream, currentFileLength)));
                     break;
                 }
 
-                Packet packet = new Packet(readBytes(fileInputStream, 1024));
+                Packet packet = new Packet(readBytes(fileInputStream, Consts.bufferSize));
                 sendPacket(out, packet);
 
-                currentFileLength -= 1024;
+                currentFileLength -= Consts.bufferSize;
             }
 
         } catch (FileNotFoundException e) {
@@ -133,7 +139,7 @@ public class Tools {
 
     private static void sendPacket(DataOutputStream out, Packet packet) {
         try {
-            out.write(packet.getPacketLength());
+            out.writeInt(packet.getPacketLength());
             out.write(packet.getBytes());
             out.flush();
         } catch (IOException e) {
@@ -161,7 +167,6 @@ public class Tools {
 
             for(int i = 0; i < header.getCountOfPackets(); i++) {
                 byte[] a = getPacket(in);
-                System.out.println("((" + a.length + "))");
                 fileOutputStream.write(a);
             }
 
@@ -184,7 +189,7 @@ public class Tools {
 
     public static byte[] getPacket(DataInputStream in) {
         try {
-            int packetLength = in.read();
+            int packetLength = in.readInt();
             return in.readNBytes(packetLength);
         } catch (IOException e) {
             e.printStackTrace();

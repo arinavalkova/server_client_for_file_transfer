@@ -117,9 +117,5 @@ public class MultiServer extends Thread {
         }
         return null;
     }
-
-    private void saveFile(byte[] message) {
-
-    }
 }
 

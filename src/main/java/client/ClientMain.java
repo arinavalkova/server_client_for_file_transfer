@@ -22,12 +22,10 @@ public class ClientMain {
             out = new DataOutputStream(clientSocket.getOutputStream());
 
             System.out.println("Start loading " + argsParser.getFilePath());
-            Tools.sendBytes(out, packet.getBytes(), Tools.Settings.SERVICE);
+            Tools.sendBytes(out, packet.getBytes(), Tools.Settings.DATA);
 
             byte[] serverAnswer = Tools.getBytes(in, Tools.Settings.SERVICE, null);
             System.out.println(new String(serverAnswer));
-
-            Tools.sendBytes(out, new Packet("quit".getBytes()).getBytes(), Tools.Settings.SERVICE);
 
             Tools.closeSocketConnection(clientSocket, in, out);
         } catch (IOException e) {

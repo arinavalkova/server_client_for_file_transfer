@@ -6,6 +6,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.MultipleSelectionModel;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import networks.Consts;
 import networks.Tools;
 
@@ -15,7 +18,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class ServerWindowController{
 
@@ -115,14 +120,28 @@ public class ServerWindowController{
     @FXML
     private JFXButton changeServerPath;
 
+    @FXML
+    private Label serverAnswerLabel;
+
     private ObservableList<String> listOfFiles = FXCollections.observableArrayList();
     private static Thread listOfServerFilesThread;
 
     @FXML
     void initialize() {
+        setPathLabel();
         startServer();
         showFileList();
+        setEvents();
+    }
+
+    private void setPathLabel() {
+        serverPathLabel.setText(Consts.DEFAULT_MULTI_SERVER_PATH);
+    }
+
+    private void setEvents() {
         setUploadButtonEvent();
+        setDeleteButtonEvent();
+        setChangeServerPathEvent();
     }
 
     private void startServer() {
@@ -186,6 +205,64 @@ public class ServerWindowController{
     }
 
     private void setUploadButtonEvent() {
+        uploadButton.setOnAction(event -> {
 
+            FileChooser fileChooser = new FileChooser();
+            File file = fileChooser.showOpenDialog(null);
+            if(file == null) {
+                return;
+            }
+
+            serverAnswerLabel.setText("Start uploading " + file.getAbsolutePath());
+
+            File newFile = new File(Consts.DEFAULT_MULTI_SERVER_PATH + file.getName());
+            try {
+                Files.copy(file.toPath(), newFile.toPath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            byte[] hashFile = Tools.getHash(file.getAbsolutePath());
+            byte[] hashNewFile = Tools.getHash(newFile.getAbsolutePath());
+            if (Arrays.equals(hashFile, hashNewFile)) {
+                serverAnswerLabel.setText(file.getName() + " successfully uploaded!");
+            } else {
+                serverAnswerLabel.setText(file.getName() + " has problems with uploading! Try Again!");
+                file.delete();
+            }
+        });
+    }
+
+    private void setDeleteButtonEvent() {
+        deleteButton.setOnAction(event -> {
+            MultipleSelectionModel selectedFile = serverContentListView.getSelectionModel();
+            Object selectedFileObject = selectedFile.getSelectedItem();
+            if(selectedFileObject == null) {
+                serverAnswerLabel.setText("File is not chosen!");
+                return;
+            }
+            String selectedFileString = selectedFileObject.toString();
+
+            File file = new File(Consts.DEFAULT_MULTI_SERVER_PATH + selectedFileString);
+            System.out.println(Consts.DEFAULT_MULTI_SERVER_PATH + selectedFileString);
+            if(file.delete()) {
+                serverAnswerLabel.setText(file.getName() + " successfully deleted!");
+            } else {
+                serverAnswerLabel.setText(file.getName() + " has problems with deleting! Try again!");
+            }
+        });
+    }
+
+    private void setChangeServerPathEvent() {
+        changeServerPath.setOnAction(event -> {
+            DirectoryChooser directoryChooser = new DirectoryChooser();
+            File dir = directoryChooser.showDialog(null);
+            if(dir == null) {
+                return;
+            }
+            Consts.DEFAULT_MULTI_SERVER_PATH = dir.getAbsolutePath() + "\\";
+
+            serverPathLabel.setText(Consts.DEFAULT_MULTI_SERVER_PATH);
+        });
     }
 }

@@ -66,7 +66,7 @@ public class Tools {
         return header;
     }
 
-    private static byte[] getHash(String pathNameString) {
+    public static byte[] getHash(String pathNameString) {
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance("MD5");
@@ -121,8 +121,9 @@ public class Tools {
 
                 currentFileLength -= Consts.BUFFER_SIZE;
             }
+            fileInputStream.close();
 
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

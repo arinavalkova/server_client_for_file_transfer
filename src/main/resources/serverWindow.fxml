@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXButton?>
+<?import com.jfoenix.controls.JFXListView?>
+<?import com.jfoenix.controls.JFXTextArea?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: #6F6F6F;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ServerWindowController">
+   <children>
+      <JFXListView fx:id="serverContentListView" layoutX="24.0" layoutY="76.0" prefHeight="276.0" prefWidth="200.0" style="-fx-background-color: #A8A8A8;" />
+      <Label layoutX="58.0" layoutY="42.0" prefHeight="34.0" prefWidth="132.0" text="Server content" textFill="#fdf1f1">
+         <font>
+            <Font name="Ink Free" size="20.0" />
+         </font>
+      </Label>
+      <Label layoutX="286.0" layoutY="10.0" text="Server" textFill="#f8efef">
+         <font>
+            <Font name="Ink Free" size="30.0" />
+         </font>
+      </Label>
+      <JFXTextArea fx:id="serverTextArea" focusColor="#e5e7ea" layoutX="249.0" layoutY="84.0" prefHeight="161.0" prefWidth="331.0" style="-jfx-focus-color: white; -fx-background-color: #E9E9E9;" unFocusColor="#4f4848">
+         <font>
+            <Font name="Ink Free" size="13.0" />
+         </font>
+      </JFXTextArea>
+      <JFXButton fx:id="uploadButton" layoutX="24.0" layoutY="362.0" text="Upload" textFill="#faf7f7">
+         <font>
+            <Font name="Ink Free" size="17.0" />
+         </font>
+      </JFXButton>
+      <JFXButton fx:id="deleteButton" layoutX="145.0" layoutY="362.0" text="Delete" textFill="#e8e4e4">
+         <font>
+            <Font name="Ink Free" size="17.0" />
+         </font>
+      </JFXButton>
+      <JFXButton fx:id="changeServerPath" layoutX="329.0" layoutY="351.0" text="Change server path" textFill="#faf4f4">
+         <font>
+            <Font name="Ink Free" size="17.0" />
+         </font>
+      </JFXButton>
+      <Label fx:id="serverPathLabel" layoutX="249.0" layoutY="323.0" prefHeight="23.0" prefWidth="331.0" textFill="#f8f3f3">
+         <font>
+            <Font name="Ink Free" size="13.0" />
+         </font>
+      </Label>
+   </children>
+</AnchorPane>

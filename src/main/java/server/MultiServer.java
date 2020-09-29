@@ -1,7 +1,6 @@
 package server;
 
 import networks.Consts;
-import networks.Packet;
 import networks.Tools;
 
 import java.io.DataInputStream;
@@ -12,8 +11,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class MultiServer extends Thread {
-    private  Socket socket;
-    private final File file = new File("D:/secondLabNetworks/server/");
+    private Socket socket;
+    private DataInputStream in;
+    private DataOutputStream out;
 
     public MultiServer() {}
     public void setSocket(Socket socket) {
@@ -23,8 +23,8 @@ public class MultiServer extends Thread {
 
     public void run() {
         try {
-            DataInputStream in = new DataInputStream (socket.getInputStream());
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+            in = new DataInputStream (socket.getInputStream());
+            out = new DataOutputStream(socket.getOutputStream());
 
             String line;
             while(true) {
@@ -37,7 +37,7 @@ public class MultiServer extends Thread {
                     break;
                 } else if (line.equals("loadToServer")) {
 
-                    byte[] message = Tools.getBytes(in, Tools.Settings.DATA, Consts.defaultMultiServerPath);
+                    byte[] message = Tools.getBytes(in, Tools.Settings.DATA, Consts.DEFAULT_MULTI_SERVER_PATH);
 
                     if(message != null) {
                         System.out.println(new String(message) + " successfully loaded to server!");
@@ -51,7 +51,7 @@ public class MultiServer extends Thread {
                 } else if(line.equals("getServerFilesList")) {
 
                     System.out.println("Sending file list to " + socket.getInetAddress() + " " + socket.getPort());
-                    String fileList = getFileList();
+                    String fileList = Tools.getFileList();
                     Tools.sendBytes(out, fileList.getBytes(), Tools.Settings.SERVICE);
 
                     System.out.println("File list has sent to " + socket.getInetAddress() + " " + socket.getPort());
@@ -59,12 +59,12 @@ public class MultiServer extends Thread {
                 } else if(line.equals("loadFromServer")) {
 
                     byte[] fileName = Tools.getBytes(in, Tools.Settings.SERVICE, null);
-                    File file = findFile(fileName);
+                    File file = Tools.findFile(fileName);
                     System.out.println("Client " + socket.getInetAddress() + " " + socket.getPort() + " tried to get " + new String(fileName));
                     if(file != null) {
                         System.out.println(new String(fileName) + " found and can be uploaded!");
                         Tools.sendBytes(out, "found".getBytes(), Tools.Settings.SERVICE);
-                        Tools.sendBytes(out, (Consts.defaultMultiServerPath + new String(fileName)).getBytes(), Tools.Settings.DATA);
+                        Tools.sendBytes(out, (Consts.DEFAULT_MULTI_SERVER_PATH + new String(fileName)).getBytes(), Tools.Settings.DATA);
                     }
                     else {
                         System.out.println(new String(fileName) + " not found and can't be uploaded!");
@@ -74,20 +74,12 @@ public class MultiServer extends Thread {
                     System.out.println("Bad command");
                 }
             }
+
+            Tools.closeSocketConnection(socket, in, out);
         } catch(Exception e) {
             System.out.println("Exception : " + e);
+            Tools.closeSocketConnection(socket, in, out);
         }
-    }
-
-    private String getFileList() {
-        File[] files = file.listFiles();
-        String fileList = "";
-
-        for (File value : files) {
-            fileList += value.getName() + " ";
-        }
-
-        return fileList;
     }
 
     public static void main(String[] args) {
@@ -104,18 +96,6 @@ public class MultiServer extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private File findFile(byte[] fileName) {
-        File[] files = file.listFiles();
-        String fileNameString = new String(fileName);
-
-        for (File value : files) {
-            if(value.getName().equals(fileNameString)){
-                return value;
-            }
-        }
-        return null;
     }
 }
 

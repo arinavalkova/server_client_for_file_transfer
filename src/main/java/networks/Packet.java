@@ -1,10 +1,6 @@
 package networks;
 
 public class Packet {
-    enum Settings {
-        SERVICE,
-        DATA
-    }
 
     private final int packetLength;
     private final byte[] message;

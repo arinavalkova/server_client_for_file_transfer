@@ -6,13 +6,13 @@ import networks.Consts;
 
 public class ArgsParser {
     @Parameter(names = { "-p", "-port" }, description = "Port for connection to server")
-    private Integer port = Consts.defaultServerPort;
+    private Integer port = Consts.DEFAULT_SERVER_PORT;
 
     @Parameter(names = "-ip", description = "Port for connection to server")
-    private String ip = Consts.defaultServerIp;
+    private String ip = Consts.DEFAULT_SERVER_IP;
 
     @Parameter(names = { "-f", "-file" }, description = "File for sending to the server")
-    private String filePath = Consts.defaultFilePath;
+    private String filePath = Consts.DEFAULT_FILE_PATH;
 
     public ArgsParser(String[] args) {
         JCommander.newBuilder()

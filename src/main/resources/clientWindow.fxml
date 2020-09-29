@@ -6,8 +6,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: #6F6F6F;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="MainWindowController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: #6F6F6F;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ClientWindowController">
    <children>
       <JFXListView fx:id="serverContentListView" layoutX="14.0" layoutY="66.0" prefHeight="276.0" prefWidth="200.0" style="-fx-background-color: #A8A8A8;" />
       <Label layoutX="48.0" layoutY="32.0" prefHeight="34.0" prefWidth="132.0" text="Server content" textFill="#fdf1f1">
@@ -36,11 +35,6 @@
          </font>
       </Label>
       <JFXButton fx:id="loadFromServerButton" layoutX="40.0" layoutY="341.0" text="Load from server" textFill="#f2f1f1">
-         <font>
-            <Font name="Ink Free" size="17.0" />
-         </font>
-      </JFXButton>
-      <JFXButton fx:id="quitButton" layoutX="531.0" layoutY="11.0" text="Quit" textFill="#f5efef">
          <font>
             <Font name="Ink Free" size="17.0" />
          </font>

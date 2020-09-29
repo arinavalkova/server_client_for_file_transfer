@@ -81,7 +81,7 @@ public class MultiClient {
 
                     byte[] answer = Tools.getBytes(in, Tools.Settings.SERVICE, null);
                     if(new String(answer).equals("found")) {
-                        byte[] fileName = Tools.getBytes(in, Tools.Settings.DATA, Consts.defaultMultiClientPath);
+                        byte[] fileName = Tools.getBytes(in, Tools.Settings.DATA, Consts.DEFAULT_MULTI_CLIENT_PATH);
                         if(fileName == null) {
                             System.out.println("Problems with loading file " + commandArray[1]);
                         } else {

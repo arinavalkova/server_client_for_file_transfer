@@ -16,21 +16,17 @@ public class Header {
 
         int i = 0;
         int fileNameSize = new BigInteger(Arrays.copyOfRange(headerArray, i, Integer.BYTES)).intValue();
-
         i += Integer.BYTES;
 
         byte[] fileName = Arrays.copyOfRange(headerArray, i, i + fileNameSize);
-
         i += fileNameSize;
 
         this.fileName = new String(fileName);
 
         int hashSize = new BigInteger(Arrays.copyOfRange(headerArray, i, i + Integer.BYTES)).intValue();
-
         i += Integer.BYTES;
 
         fileHash = Arrays.copyOfRange(headerArray, i, i + hashSize);
-
         i += hashSize;
 
         this.countOfPackets = new BigInteger(Arrays.copyOfRange(headerArray, i, i + Integer.BYTES)).intValue();

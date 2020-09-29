@@ -6,7 +6,7 @@ import networks.Consts;
 
 public class ArgsParser {
     @Parameter(names = { "-p", "-port" }, description = "Port for connection to server")
-    private Integer port = Consts.defaultServerPort;
+    private Integer port = Consts.DEFAULT_SERVER_PORT;
 
     public ArgsParser(String[] args) {
         JCommander.newBuilder()

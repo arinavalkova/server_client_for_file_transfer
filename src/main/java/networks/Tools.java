@@ -18,7 +18,7 @@ public class Tools {
         }
     }
 
-    private static void closeStreams(DataInputStream dataInputStream, DataOutputStream dataOutputStream) {
+    public static void closeStreams(DataInputStream dataInputStream, DataOutputStream dataOutputStream) {
         try {
             dataInputStream.close();
             dataOutputStream.close();
@@ -42,25 +42,26 @@ public class Tools {
         byte[] header = new byte[Integer.BYTES + fileName.length + Integer.BYTES + hash.length + Integer.BYTES];
 
         int i = 0;
-        System.arraycopy(ByteBuffer.allocate(Integer.BYTES).putInt(fileName.length).array(), 0, header, i, Integer.BYTES);
-
+        System.arraycopy(ByteBuffer.allocate(Integer.BYTES).putInt(fileName.length).array(),
+                0, header, i, Integer.BYTES);
         i += Integer.BYTES;
 
         System.arraycopy(fileName, 0, header, i, fileName.length);
-
         i += fileName.length;
 
-        System.arraycopy(ByteBuffer.allocate(Integer.BYTES).putInt(hash.length).array(), 0, header, i, Integer.BYTES);
-
+        System.arraycopy(ByteBuffer.allocate(Integer.BYTES).putInt(hash.length).array(),
+                0, header, i, Integer.BYTES);
         i += Integer.BYTES;
 
         System.arraycopy(hash, 0, header, i, hash.length);
-
         i += hash.length;
 
-        int fileLength = (int) (file.length() % Consts.bufferSize == 0 ? file.length() / Consts.bufferSize : file.length() / Consts.bufferSize + 1);
-
-        System.arraycopy(ByteBuffer.allocate(Integer.BYTES).putInt(fileLength).array(), 0, header, i, Integer.BYTES);
+        int fileLength = (int) (file.length() % Consts.BUFFER_SIZE == 0 ?
+                file.length() / Consts.BUFFER_SIZE :
+                file.length() / Consts.BUFFER_SIZE + 1
+        );
+        System.arraycopy(ByteBuffer.allocate(Integer.BYTES).putInt(fileLength).array(),
+                0, header, i, Integer.BYTES);
 
         return header;
     }
@@ -72,7 +73,7 @@ public class Tools {
             System.out.println(pathNameString);
             FileInputStream fis = new FileInputStream(pathNameString);
 
-            byte[] dataBytes = new byte[1024];
+            byte[] dataBytes = new byte[Consts.SMALL_BUFFER_SIZE];
 
             int nread = 0;
             while ((nread = fis.read(dataBytes)) != -1) {
@@ -110,15 +111,15 @@ public class Tools {
 
             long currentFileLength = fileLength;
             while (currentFileLength > 0) {
-                if (currentFileLength < Consts.bufferSize) {
+                if (currentFileLength < Consts.BUFFER_SIZE) {
                     sendPacket(out, new Packet(readBytes(fileInputStream, currentFileLength)));
                     break;
                 }
 
-                Packet packet = new Packet(readBytes(fileInputStream, Consts.bufferSize));
+                Packet packet = new Packet(readBytes(fileInputStream, Consts.BUFFER_SIZE));
                 sendPacket(out, packet);
 
-                currentFileLength -= Consts.bufferSize;
+                currentFileLength -= Consts.BUFFER_SIZE;
             }
 
         } catch (FileNotFoundException e) {
@@ -162,7 +163,6 @@ public class Tools {
         Header header = new Header(headerArray);
 
         File file = new File(path + header.getFileName());
-
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(file);
 
@@ -176,9 +176,7 @@ public class Tools {
             e.printStackTrace();
         }
 
-
         byte[] hashGottenFile = Tools.getHash(path + header.getFileName());
-
         if (Arrays.equals(hashGottenFile, header.getFileHash())) {
             return header.getFileName().getBytes();
         } else {
@@ -196,5 +194,30 @@ public class Tools {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static File findFile(byte[] fileName) {
+        File file = new File(Consts.DEFAULT_MULTI_SERVER_PATH);
+        File[] files = file.listFiles();
+        String fileNameString = new String(fileName);
+
+        for (File value : files) {
+            if(value.getName().equals(fileNameString)){
+                return value;
+            }
+        }
+        return null;
+    }
+
+    public static String getFileList() {
+        File file = new File(Consts.DEFAULT_MULTI_SERVER_PATH);
+        File[] files = file.listFiles();
+        String fileList = "";
+
+        for (File value : files) {
+            fileList += value.getName() + " ";
+        }
+
+        return fileList;
     }
 }

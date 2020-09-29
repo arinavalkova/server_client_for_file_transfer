@@ -16,12 +16,11 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class MainWindowController {
+public class ClientWindowController {
 
     private static Socket clientSocket;
     private static DataInputStream in;
     private static DataOutputStream out;
-    private static BufferedReader reader;
     private static Thread listOfServerFilesThread;
 
     private ObservableList<String> listOfFiles = FXCollections.observableArrayList();
@@ -41,17 +40,25 @@ public class MainWindowController {
     @FXML
     private JFXButton loadFromServerButton;
 
-    @FXML
-    private JFXButton quitButton;
+    public static Socket clientSocketGetter() {
+        return clientSocket;
+    }
+
+    public static DataInputStream DataInputStreamGetter() {
+        return in;
+    }
+
+    public static DataOutputStream DataOutputStreamGetter() {
+        return out;
+    }
 
     @FXML
     void initialize() {
         try {
-            clientSocket = new Socket(Consts.defaultServerIp, Consts.defaultServerPort);
+            clientSocket = new Socket(Consts.DEFAULT_SERVER_IP, Consts.DEFAULT_SERVER_PORT);
 
             in = new DataInputStream(clientSocket.getInputStream());
             out = new DataOutputStream(clientSocket.getOutputStream());
-            reader = new BufferedReader(new InputStreamReader(System.in));
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -61,8 +68,7 @@ public class MainWindowController {
         setListOfServerFilesThread();
     }
 
-    private void setEvents() {///крестик обработать, позакрывать все везде, а если я не выберу в файл чюзере
-        setQuitButtonEvent();
+    private void setEvents() {
         setUploadToServerButtonEvent();
         setLoadFromServerButtonEvent();
     }
@@ -74,8 +80,12 @@ public class MainWindowController {
             @Override
             public void run() {
                 while (!listOfServerFilesThread.isInterrupted()) {
+                    if(clientSocket.isClosed())
+                        break;
                     Tools.sendBytes(out, "getServerFilesList".getBytes(), Tools.Settings.SERVICE);
 
+                    if(clientSocket.isClosed())
+                        break;
                     byte[] fileList = Tools.getBytes(in, Tools.Settings.SERVICE, null);
                     String fileListString = new String(fileList);
                     ArrayList<String> fileListArray = new ArrayList<>(Arrays.asList(fileListString.split(" ")));
@@ -105,21 +115,15 @@ public class MainWindowController {
         listOfServerFilesThread.start();
     }
 
-    private void setQuitButtonEvent() {
-        quitButton.setOnAction(event -> {
-            Tools.sendBytes(out, "quit".getBytes(), Tools.Settings.SERVICE);
-
-            byte[] message = Tools.getBytes(in, Tools.Settings.SERVICE, null);
-            serverAnswerLabel.setText(new String(message));
-        });
-    }
-
     private void setUploadToServerButtonEvent() {
 
         uploadButton.setOnAction(event -> {
 
             FileChooser fileChooser = new FileChooser();
             File file = fileChooser.showOpenDialog(null);
+            if(file == null) {
+                return;
+            }
 
             serverAnswerLabel.setText("Start uploading " + file.getAbsolutePath());
 
@@ -134,19 +138,26 @@ public class MainWindowController {
     private void setLoadFromServerButtonEvent() {
         loadFromServerButton.setOnAction(event -> {
             MultipleSelectionModel selectedFile = serverContentListView.getSelectionModel();
-            String selectedFileString = selectedFile.getSelectedItem().toString();
+            Object selectedFileObject = selectedFile.getSelectedItem();
+            if(selectedFileObject == null) {
+                serverAnswerLabel.setText("File is not chosen!");
+                return;
+            }
+            String selectedFileString = selectedFileObject.toString();
 
             DirectoryChooser directoryChooser = new DirectoryChooser();
             File dir = directoryChooser.showDialog(null);
-
-            Consts.defaultMultiClientPath = dir.getAbsolutePath() + "\\";
+            if(dir == null) {
+                return;
+            }
+            Consts.DEFAULT_MULTI_CLIENT_PATH = dir.getAbsolutePath() + "\\";
 
             Tools.sendBytes(out, "loadFromServer".getBytes(), Tools.Settings.SERVICE);
             Tools.sendBytes(out, selectedFileString.getBytes(), Tools.Settings.SERVICE);
 
             byte[] answer = Tools.getBytes(in, Tools.Settings.SERVICE, null);
-            if(new String(answer).equals("found")) {
-                byte[] fileName = Tools.getBytes(in, Tools.Settings.DATA, Consts.defaultMultiClientPath);
+            if (new String(answer).equals("found")) {
+                byte[] fileName = Tools.getBytes(in, Tools.Settings.DATA, Consts.DEFAULT_MULTI_CLIENT_PATH);
                 if(fileName == null) {
                     serverAnswerLabel.setText("Problems with loading file " + selectedFileString);
                 } else {

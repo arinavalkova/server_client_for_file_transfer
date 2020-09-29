@@ -12,6 +12,8 @@ import java.net.Socket;
 
 public class ServerMain extends Thread {
     private Socket socket;
+    private DataInputStream in;
+    private DataOutputStream out;
 
     public ServerMain() {
     }
@@ -23,17 +25,20 @@ public class ServerMain extends Thread {
 
     public void run() {
         try {
-            DataInputStream in = new DataInputStream(socket.getInputStream());
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+            in = new DataInputStream(socket.getInputStream());
+            out = new DataOutputStream(socket.getOutputStream());
 
             String line = null;
-            byte[] entry = Tools.getBytes(in, Tools.Settings.DATA, Consts.defaultMultiServerPath);
+            byte[] entry = Tools.getBytes(in, Tools.Settings.DATA, Consts.DEFAULT_MULTI_SERVER_PATH);
             if (entry != null)
                 System.out.println("Loaded from " + socket.getInetAddress() + " " + socket.getPort() + " " + new String(entry));
 
-            Tools.sendBytes(out, new Packet(("Server reply loading " + new String(entry) + " - OK" + "\n").getBytes()).getBytes(), Tools.Settings.SERVICE);
+            Tools.sendBytes(out, new Packet(("Server reply loading " + new String(entry) + " - OK" + "\n").getBytes()).getBytes(),
+                    Tools.Settings.SERVICE);
+            Tools.closeSocketConnection(socket, in , out);
         } catch (Exception e) {
             System.out.println("Exception : " + e);
+            Tools.closeSocketConnection(socket, in , out);
         }
     }
 

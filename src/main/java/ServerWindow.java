@@ -4,11 +4,11 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-public class MainWindow extends Application {
+public class ServerWindow extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("clientWindow.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("serverWindow.fxml"));
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
     }

@@ -1,8 +1,9 @@
 plugins {
     id 'java'
+    id 'org.openjfx.javafxplugin' version '0.0.9'
 }
 
-group 'org.example'
+group 'org.westochka'
 version '1.0-SNAPSHOT'
 
 repositories {
@@ -11,6 +12,11 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile 'com.jfoenix:jfoenix:9.0.8'
     compile group: 'com.beust', name: 'jcommander', version: '1.78'
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.7'
+}
+
+javafx {
+    version = '12'
+    modules = ['javafx.controls', 'javafx.fxml']
 }

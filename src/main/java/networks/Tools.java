@@ -69,6 +69,7 @@ public class Tools {
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance("MD5");
+            System.out.println(pathNameString);
             FileInputStream fis = new FileInputStream(pathNameString);
 
             byte[] dataBytes = new byte[1024];

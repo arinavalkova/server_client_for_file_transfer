@@ -1,6 +1,7 @@
 package client;
 
 import networks.Packet;
+import networks.SpeedChecker;
 import networks.Tools;
 
 import java.io.*;
@@ -15,6 +16,7 @@ public class ClientMain {
     public static void main(String[] args) {
         ArgsParser argsParser = new ArgsParser(args);
         Packet packet = new Packet(argsParser.getFilePath().getBytes());
+        SpeedChecker speedChecker = new SpeedChecker();
         try {
             clientSocket = new Socket(argsParser.getIp(), argsParser.getPort());
 
@@ -24,7 +26,7 @@ public class ClientMain {
             System.out.println("Start loading " + argsParser.getFilePath());
             Tools.sendBytes(out, packet.getBytes(), Tools.Settings.DATA);
 
-            byte[] serverAnswer = Tools.getBytes(in, Tools.Settings.SERVICE, null);
+            byte[] serverAnswer = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
             System.out.println(new String(serverAnswer));
 
             Tools.closeSocketConnection(clientSocket, in, out);

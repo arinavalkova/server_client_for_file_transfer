@@ -70,7 +70,6 @@ public class Tools {
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance("MD5");
-            System.out.println(pathNameString);
             FileInputStream fis = new FileInputStream(pathNameString);
 
             byte[] dataBytes = new byte[Consts.SMALL_BUFFER_SIZE];
@@ -79,6 +78,7 @@ public class Tools {
             while ((nread = fis.read(dataBytes)) != -1) {
                 md.update(dataBytes, 0, nread);
             }
+            fis.close();
         } catch (NoSuchAlgorithmException | IOException e) {
             e.printStackTrace();
         }
@@ -116,9 +116,10 @@ public class Tools {
                     break;
                 }
 
-                Packet packet = new Packet(readBytes(fileInputStream, Consts.BUFFER_SIZE));
-                sendPacket(out, packet);
+                var buff = readBytes(fileInputStream, Consts.BUFFER_SIZE);
 
+                Packet packet = new Packet(buff);
+                sendPacket(out, packet);
                 currentFileLength -= Consts.BUFFER_SIZE;
             }
             fileInputStream.close();
@@ -131,8 +132,8 @@ public class Tools {
     private static byte[] readBytes(FileInputStream fileInputStream, long length) {
         byte[] answer = new byte[(int) length];
         try {
-            for (int i = 0; i < length; i++) {
-                answer[i] = (byte) fileInputStream.read();
+            for (int off = 0; off < length;) {
+                off += fileInputStream.read(answer, off, (int)length - off);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -150,15 +151,15 @@ public class Tools {
         }
     }
 
-    public static byte[] getBytes(DataInputStream in, Tools.Settings settings, String path) {
+    public static byte[] getBytes(DataInputStream in, Settings settings, String path, SpeedChecker speedChecker) {
         if (settings.equals(Settings.SERVICE)) {
             return getPacket(in);
         } else {
-            return getFile(in, path);
+            return getFile(in, path, speedChecker);
         }
     }
 
-    private static byte[] getFile(DataInputStream in, String path) {
+    private static byte[] getFile(DataInputStream in, String path, SpeedChecker speedChecker) {
         byte[] headerArray = getPacket(in);
 
         Header header = new Header(headerArray);
@@ -167,11 +168,18 @@ public class Tools {
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(file);
 
+            speedChecker.setStartTime(System.currentTimeMillis());
+
             for(int i = 0; i < header.getCountOfPackets(); i++) {
                 byte[] a = getPacket(in);
+                if (i % 10 == 0)
+                    speedChecker.addBytesCount(a.length);
                 fileOutputStream.write(a);
             }
 
+            speedChecker.setEndTime(System.currentTimeMillis());
+
+            fileOutputStream.flush();
             fileOutputStream.close();
         } catch (IOException e) {
             e.printStackTrace();

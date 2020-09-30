@@ -5,6 +5,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import networks.SpeedChecker;
 import networks.Tools;
 
 public class ClientWindow extends Application {
@@ -14,6 +15,8 @@ public class ClientWindow extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("clientWindow.fxml"));
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
+
+        SpeedChecker speedChecker = new SpeedChecker();
 
         primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
@@ -26,8 +29,8 @@ public class ClientWindow extends Application {
                 byte[] message = Tools.getBytes(
                         ClientWindowController.DataInputStreamGetter(),
                         Tools.Settings.SERVICE,
-                        null
-                );
+                        null,
+                        speedChecker);
 
                 Tools.closeSocketConnection(
                         ClientWindowController.clientSocketGetter(),

@@ -9,6 +9,7 @@ import javafx.scene.control.MultipleSelectionModel;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import networks.Consts;
+import networks.SpeedChecker;
 import networks.Tools;
 
 import java.io.*;
@@ -52,10 +53,13 @@ public class ClientWindowController {
         return out;
     }
 
+    private SpeedChecker speedChecker;
+
     @FXML
     void initialize() {
         try {
             clientSocket = new Socket(Consts.DEFAULT_SERVER_IP, Consts.DEFAULT_SERVER_PORT);
+            speedChecker = new SpeedChecker();
 
             in = new DataInputStream(clientSocket.getInputStream());
             out = new DataOutputStream(clientSocket.getOutputStream());
@@ -63,6 +67,22 @@ public class ClientWindowController {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        Thread timerThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(true) {
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException exception) {
+                        exception.printStackTrace();
+                    }
+                    Platform.runLater(() -> speedLabel.setText(String.format(" Inst: %.3f Mb/s, Aver: %.3f Mb/s",
+                            speedChecker.getInstantSpeed(), speedChecker.getAverageSpeed())));
+                }
+            }
+        });
+        timerThread.start();
 
         setEvents();
         setListOfServerFilesThread();
@@ -86,7 +106,7 @@ public class ClientWindowController {
 
                     if(clientSocket.isClosed())
                         break;
-                    byte[] fileList = Tools.getBytes(in, Tools.Settings.SERVICE, null);
+                    byte[] fileList = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
                     String fileListString = new String(fileList);
                     ArrayList<String> fileListArray = new ArrayList<>(Arrays.asList(fileListString.split(" ")));
 
@@ -130,8 +150,9 @@ public class ClientWindowController {
             Tools.sendBytes(out, "loadToServer".getBytes(), Tools.Settings.SERVICE);
             Tools.sendBytes(out, file.getAbsolutePath().getBytes(), Tools.Settings.DATA);
 
-            byte[] serverAnswer = Tools.getBytes(in, Tools.Settings.SERVICE, null);
+            byte[] serverAnswer = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
             serverAnswerLabel.setText(new String(serverAnswer));
+            speedChecker.reset();
         });
     }
 
@@ -155,9 +176,9 @@ public class ClientWindowController {
             Tools.sendBytes(out, "loadFromServer".getBytes(), Tools.Settings.SERVICE);
             Tools.sendBytes(out, selectedFileString.getBytes(), Tools.Settings.SERVICE);
 
-            byte[] answer = Tools.getBytes(in, Tools.Settings.SERVICE, null);
+            byte[] answer = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
             if (new String(answer).equals("found")) {
-                byte[] fileName = Tools.getBytes(in, Tools.Settings.DATA, Consts.DEFAULT_MULTI_CLIENT_PATH);
+                byte[] fileName = Tools.getBytes(in, Tools.Settings.DATA, Consts.DEFAULT_MULTI_CLIENT_PATH, speedChecker);
                 if(fileName == null) {
                     serverAnswerLabel.setText("Problems with loading file " + selectedFileString);
                 } else {

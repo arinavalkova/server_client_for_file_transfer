@@ -20,7 +20,7 @@
             <Font name="Ink Free" size="30.0" />
          </font>
       </Label>
-      <JFXTextArea fx:id="serverTextArea" focusColor="#e5e7ea" layoutX="249.0" layoutY="84.0" prefHeight="161.0" prefWidth="331.0" style="-jfx-focus-color: white; -fx-background-color: #E9E9E9;" unFocusColor="#4f4848">
+      <JFXTextArea fx:id="serverTextArea" focusColor="#e5e7ea" layoutX="249.0" layoutY="76.0" prefHeight="161.0" prefWidth="331.0" style="-jfx-focus-color: white; -fx-background-color: #E9E9E9;" unFocusColor="#4f4848">
          <font>
             <Font name="Ink Free" size="13.0" />
          </font>
@@ -46,6 +46,11 @@
          </font>
       </Label>
       <Label fx:id="serverAnswerLabel" layoutX="249.0" layoutY="274.0" prefHeight="34.0" prefWidth="331.0" textFill="#f8f3f3">
+         <font>
+            <Font name="Ink Free" size="13.0" />
+         </font>
+      </Label>
+      <Label fx:id="speedLabel" layoutX="247.0" layoutY="238.0" prefHeight="34.0" prefWidth="331.0" textFill="#f8f3f3">
          <font>
             <Font name="Ink Free" size="13.0" />
          </font>

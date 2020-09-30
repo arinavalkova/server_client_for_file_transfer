@@ -1,6 +1,7 @@
 package server;
 
 import networks.Consts;
+import networks.SpeedChecker;
 import networks.Tools;
 
 import java.io.DataInputStream;
@@ -15,6 +16,7 @@ public class MultiServer extends Thread {
     private DataInputStream in;
     private DataOutputStream out;
 
+
     public MultiServer() {}
     public void setSocket(Socket socket) {
         this.socket = socket;
@@ -26,9 +28,27 @@ public class MultiServer extends Thread {
             in = new DataInputStream (socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
 
+            SpeedChecker speedChecker = new SpeedChecker();
+
+            Thread timerThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while(true) {
+                        try {
+                            Thread.sleep(3000);
+                        } catch (InterruptedException exception) {
+                            exception.printStackTrace();
+                        }
+                        System.out.printf("Inst: %.3f Mb/s, Aver: %.3f Mb/s%n", speedChecker.getInstantSpeed(),
+                                speedChecker.getAverageSpeed());
+                    }
+                }
+            });
+            timerThread.start();
+
             String line;
             while(true) {
-                line = new String(Tools.getBytes(in, Tools.Settings.SERVICE, null));
+                line = new String(Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker));
                 if (line.equals("quit")) {
 
                     System.out.println("Gotten quit from " + socket.getInetAddress() + " " + socket.getPort());
@@ -37,7 +57,7 @@ public class MultiServer extends Thread {
                     break;
                 } else if (line.equals("loadToServer")) {
 
-                    byte[] message = Tools.getBytes(in, Tools.Settings.DATA, Consts.DEFAULT_MULTI_SERVER_PATH);
+                    byte[] message = Tools.getBytes(in, Tools.Settings.DATA, Consts.DEFAULT_MULTI_SERVER_PATH, speedChecker);
 
                     if(message != null) {
                         System.out.println(new String(message) + " successfully loaded to server!");
@@ -48,6 +68,7 @@ public class MultiServer extends Thread {
                         Tools.sendBytes(out, ("Problems to upload to the server. Try again...").getBytes(), Tools.Settings.SERVICE);
 
                     }
+                    speedChecker.reset();
                 } else if(line.equals("getServerFilesList")) {
 
                     System.out.println("Sending file list to " + socket.getInetAddress() + " " + socket.getPort());
@@ -58,7 +79,7 @@ public class MultiServer extends Thread {
 
                 } else if(line.equals("loadFromServer")) {
 
-                    byte[] fileName = Tools.getBytes(in, Tools.Settings.SERVICE, null);
+                    byte[] fileName = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
                     File file = Tools.findFile(fileName);
                     System.out.println("Client " + socket.getInetAddress() + " " + socket.getPort() + " tried to get " + new String(fileName));
                     if(file != null) {

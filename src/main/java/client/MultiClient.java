@@ -1,6 +1,7 @@
 package client;
 
 import networks.Consts;
+import networks.SpeedChecker;
 import networks.Tools;
 
 import java.io.*;
@@ -27,6 +28,8 @@ public class MultiClient {
             e.printStackTrace();
         }
 
+        SpeedChecker speedChecker = new SpeedChecker();
+
         while (true) {
             try {
                 System.out.println("Enter command:");
@@ -51,14 +54,14 @@ public class MultiClient {
                     Tools.sendBytes(out, "loadToServer".getBytes(), Tools.Settings.SERVICE);
                     Tools.sendBytes(out, commandArray[1].getBytes(), Tools.Settings.DATA);
 
-                    byte[] serverAnswer = Tools.getBytes(in, Tools.Settings.SERVICE, null);
+                    byte[] serverAnswer = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
                     System.out.println(new String(serverAnswer));
 
                 } else if (commandArray[0].equals("quit")) {
 
                     Tools.sendBytes(out,"quit".getBytes(), Tools.Settings.SERVICE);
 
-                    byte[] message = Tools.getBytes(in, Tools.Settings.SERVICE, null);
+                    byte[] message = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
                     System.out.println(new String(message));
                     break;
 
@@ -66,7 +69,7 @@ public class MultiClient {
 
                     Tools.sendBytes(out, "getServerFilesList".getBytes(), Tools.Settings.SERVICE);
 
-                    byte[] fileList = Tools.getBytes(in, Tools.Settings.SERVICE, null);
+                    byte[] fileList = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
                     System.out.println(new String(fileList));
 
                 } else if (commandArray[0].equals("loadFromServer")) {
@@ -79,9 +82,9 @@ public class MultiClient {
                     Tools.sendBytes(out, "loadFromServer".getBytes(), Tools.Settings.SERVICE);
                     Tools.sendBytes(out, commandArray[1].getBytes(), Tools.Settings.SERVICE);
 
-                    byte[] answer = Tools.getBytes(in, Tools.Settings.SERVICE, null);
+                    byte[] answer = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
                     if(new String(answer).equals("found")) {
-                        byte[] fileName = Tools.getBytes(in, Tools.Settings.DATA, Consts.DEFAULT_MULTI_CLIENT_PATH);
+                        byte[] fileName = Tools.getBytes(in, Tools.Settings.DATA, Consts.DEFAULT_MULTI_CLIENT_PATH, speedChecker);
                         if(fileName == null) {
                             System.out.println("Problems with loading file " + commandArray[1]);
                         } else {

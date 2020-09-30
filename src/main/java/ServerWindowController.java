@@ -10,6 +10,7 @@ import javafx.scene.control.MultipleSelectionModel;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import networks.Consts;
+import networks.SpeedChecker;
 import networks.Tools;
 
 import java.io.DataInputStream;
@@ -30,6 +31,8 @@ public class ServerWindowController{
         private DataInputStream in;
         private DataOutputStream out;
 
+        SpeedChecker speedChecker;
+
         public Server() {}
         public void setSocket(Socket socket2) {
             socket = socket2;
@@ -44,10 +47,28 @@ public class ServerWindowController{
                 e.printStackTrace();
             }
 
+            speedChecker = new SpeedChecker();
+
+            Thread timerThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while(true) {
+                        try {
+                            Thread.sleep(3000);
+                        } catch (InterruptedException exception) {
+                            exception.printStackTrace();
+                        }
+                        Platform.runLater(() -> speedLabel.setText(String.format(" Inst: %.3f Mb/s, Aver: %.3f Mb/s",
+                                speedChecker.getInstantSpeed(), speedChecker.getAverageSpeed())));
+                    }
+                }
+            });
+            timerThread.start();
+
             String line;
             try {
                 while (true) {
-                    line = new String(Tools.getBytes(in, Tools.Settings.SERVICE, null));
+                    line = new String(Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker));
                     if (line.equals("quit")) {
 
                         serverTextArea.appendText("Gotten quit from " + socket.getInetAddress() + " " + socket.getPort() + "\n");
@@ -56,7 +77,7 @@ public class ServerWindowController{
                         break;
                     } else if (line.equals("loadToServer")) {
 
-                        byte[] message = Tools.getBytes(in, Tools.Settings.DATA, Consts.DEFAULT_MULTI_SERVER_PATH);
+                        byte[] message = Tools.getBytes(in, Tools.Settings.DATA, Consts.DEFAULT_MULTI_SERVER_PATH, speedChecker);
 
                         if (message != null) {
                             serverTextArea.appendText(new String(message) + " successfully loaded to server!\n");
@@ -65,19 +86,19 @@ public class ServerWindowController{
                         } else {
                             serverTextArea.appendText("File wanted to upload to the server but something went wrong\n");
                             Tools.sendBytes(out, ("Problems to upload to the server. Try again...").getBytes(), Tools.Settings.SERVICE);
-
                         }
+                        speedChecker.reset();
                     } else if (line.equals("getServerFilesList")) {
 
-                        serverTextArea.appendText("Sending file list to " + socket.getInetAddress() + " " + socket.getPort() + "\n");
+                        //serverTextArea.appendText("Sending file list to " + socket.getInetAddress() + " " + socket.getPort() + "\n");
                         String fileList = Tools.getFileList();
                         Tools.sendBytes(out, fileList.getBytes(), Tools.Settings.SERVICE);
 
-                        serverTextArea.appendText("File list has sent to " + socket.getInetAddress() + " " + socket.getPort() + "\n");
+                        //serverTextArea.appendText("File list has sent to " + socket.getInetAddress() + " " + socket.getPort() + "\n");
 
                     } else if (line.equals("loadFromServer")) {
 
-                        byte[] fileName = Tools.getBytes(in, Tools.Settings.SERVICE, null);
+                        byte[] fileName = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
                         File file = Tools.findFile(fileName);
                         serverTextArea.appendText("Client " + socket.getInetAddress() + " " + socket.getPort() + " tried to get " + new String(fileName) + "\n");
                         if (file != null) {
@@ -88,6 +109,7 @@ public class ServerWindowController{
                             serverTextArea.appendText(new String(fileName) + " not found and can't be uploaded!\n");
                             Tools.sendBytes(out, "not found".getBytes(), Tools.Settings.SERVICE);
                         }
+                        speedChecker.reset();
                     } else {
                         serverTextArea.appendText("Bad command\n");
                     }
@@ -119,6 +141,9 @@ public class ServerWindowController{
 
     @FXML
     private JFXButton changeServerPath;
+
+    @FXML
+    private Label speedLabel;
 
     @FXML
     private Label serverAnswerLabel;
@@ -245,6 +270,7 @@ public class ServerWindowController{
 
             File file = new File(Consts.DEFAULT_MULTI_SERVER_PATH + selectedFileString);
             System.out.println(Consts.DEFAULT_MULTI_SERVER_PATH + selectedFileString);
+            file.setWritable(true);
             if(file.delete()) {
                 serverAnswerLabel.setText(file.getName() + " successfully deleted!");
             } else {

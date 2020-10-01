@@ -85,6 +85,14 @@ public class Tools {
         return md.digest();
     }
 
+    public static void sleepSec(int i) {
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException exception) {
+            exception.printStackTrace();
+        }
+    }
+
     public enum Settings {
         SERVICE,
         DATA
@@ -161,6 +169,7 @@ public class Tools {
 
     private static byte[] getFile(DataInputStream in, String path, SpeedChecker speedChecker) {
         byte[] headerArray = getPacket(in);
+        System.out.println(new String(headerArray));
 
         Header header = new Header(headerArray);
 

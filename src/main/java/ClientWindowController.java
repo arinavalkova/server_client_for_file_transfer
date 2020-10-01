@@ -22,6 +22,8 @@ public class ClientWindowController {
     private static Socket clientSocket;
     private static DataInputStream in;
     private static DataOutputStream out;
+    private static DataInputStream inListOfFiles;
+    private static DataOutputStream outListOfFiles;
     private static Thread listOfServerFilesThread;
 
     private ObservableList<String> listOfFiles = FXCollections.observableArrayList();
@@ -57,35 +59,41 @@ public class ClientWindowController {
 
     @FXML
     void initialize() {
+        setSocketBuffers();
+        setTimerThread();
+        setEvents();
+        setListOfServerFilesThread();
+    }
+
+    private void setSocketBuffers() {
         try {
             clientSocket = new Socket(Consts.DEFAULT_SERVER_IP, Consts.DEFAULT_SERVER_PORT);
+            Socket listOfFilesSocket = new Socket(Consts.DEFAULT_SERVER_IP, Consts.DEFAULT_SERVER_PORT);
             speedChecker = new SpeedChecker();
 
             in = new DataInputStream(clientSocket.getInputStream());
             out = new DataOutputStream(clientSocket.getOutputStream());
 
+            inListOfFiles = new DataInputStream(listOfFilesSocket.getInputStream());
+            outListOfFiles = new DataOutputStream(listOfFilesSocket.getOutputStream());
+
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
+    private void setTimerThread() {
         Thread timerThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 while(true) {
-                    try {
-                        Thread.sleep(3000);
-                    } catch (InterruptedException exception) {
-                        exception.printStackTrace();
-                    }
+                    Tools.sleepSec(Consts.THREE_SEC);
                     Platform.runLater(() -> speedLabel.setText(String.format(" Inst: %.3f Mb/s, Aver: %.3f Mb/s",
                             speedChecker.getInstantSpeed(), speedChecker.getAverageSpeed())));
                 }
             }
         });
         timerThread.start();
-
-        setEvents();
-        setListOfServerFilesThread();
     }
 
     private void setEvents() {
@@ -102,11 +110,11 @@ public class ClientWindowController {
                 while (!listOfServerFilesThread.isInterrupted()) {
                     if(clientSocket.isClosed())
                         break;
-                    Tools.sendBytes(out, "getServerFilesList".getBytes(), Tools.Settings.SERVICE);
+                    Tools.sendBytes(outListOfFiles, "getServerFilesList".getBytes(), Tools.Settings.SERVICE);
 
                     if(clientSocket.isClosed())
                         break;
-                    byte[] fileList = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
+                    byte[] fileList = Tools.getBytes(inListOfFiles, Tools.Settings.SERVICE, null, speedChecker);
                     String fileListString = new String(fileList);
                     ArrayList<String> fileListArray = new ArrayList<>(Arrays.asList(fileListString.split(" ")));
 
@@ -124,11 +132,7 @@ public class ClientWindowController {
                             Platform.runLater((() -> listOfFiles.add(currentFile)));
                     }
 
-                    try {
-                        Thread.sleep(Consts.FIVE_SEC);
-                    } catch (InterruptedException exception) {
-                        exception.printStackTrace();
-                    }
+                    Tools.sleepSec(Consts.FIVE_SEC);
                 }
             }
         });
@@ -141,18 +145,24 @@ public class ClientWindowController {
 
             FileChooser fileChooser = new FileChooser();
             File file = fileChooser.showOpenDialog(null);
-            if(file == null) {
+            if (file == null) {
                 return;
             }
 
-            serverAnswerLabel.setText("Start uploading " + file.getAbsolutePath());
+            Platform.runLater((() -> serverAnswerLabel.setText("Start uploading " + file.getAbsolutePath())));
 
-            Tools.sendBytes(out, "loadToServer".getBytes(), Tools.Settings.SERVICE);
-            Tools.sendBytes(out, file.getAbsolutePath().getBytes(), Tools.Settings.DATA);
+            Thread uploadThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Tools.sendBytes(out, "loadToServer".getBytes(), Tools.Settings.SERVICE);
+                    Tools.sendBytes(out, file.getAbsolutePath().getBytes(), Tools.Settings.DATA);
 
-            byte[] serverAnswer = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
-            serverAnswerLabel.setText(new String(serverAnswer));
-            speedChecker.reset();
+                    byte[] serverAnswer = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
+                    Platform.runLater((() -> serverAnswerLabel.setText(new String(serverAnswer))));
+                    speedChecker.reset();
+                }
+            });
+            uploadThread.start();
         });
     }
 
@@ -161,7 +171,7 @@ public class ClientWindowController {
             MultipleSelectionModel selectedFile = serverContentListView.getSelectionModel();
             Object selectedFileObject = selectedFile.getSelectedItem();
             if(selectedFileObject == null) {
-                serverAnswerLabel.setText("File is not chosen!");
+                Platform.runLater((() -> serverAnswerLabel.setText("File is not chosen!")));
                 return;
             }
             String selectedFileString = selectedFileObject.toString();
@@ -173,20 +183,30 @@ public class ClientWindowController {
             }
             Consts.DEFAULT_MULTI_CLIENT_PATH = dir.getAbsolutePath() + "\\";
 
-            Tools.sendBytes(out, "loadFromServer".getBytes(), Tools.Settings.SERVICE);
-            Tools.sendBytes(out, selectedFileString.getBytes(), Tools.Settings.SERVICE);
+            Platform.runLater((() -> serverAnswerLabel.setText("Start loading from server " + selectedFileString)));
+            Thread loadFromServerThread = new Thread(new Runnable() {
 
-            byte[] answer = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
-            if (new String(answer).equals("found")) {
-                byte[] fileName = Tools.getBytes(in, Tools.Settings.DATA, Consts.DEFAULT_MULTI_CLIENT_PATH, speedChecker);
-                if(fileName == null) {
-                    serverAnswerLabel.setText("Problems with loading file " + selectedFileString);
-                } else {
-                    serverAnswerLabel.setText(new String(fileName) + " successfully loaded from server!");
+                @Override
+                public void run() {
+
+                    Tools.sendBytes(out, "loadFromServer".getBytes(), Tools.Settings.SERVICE);
+                    Tools.sendBytes(out, selectedFileString.getBytes(), Tools.Settings.SERVICE);
+
+                    byte[] answer = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
+                    if(new String(answer).equals("found")) {
+                        byte[] fileName = Tools.getBytes(in, Tools.Settings.DATA, Consts.DEFAULT_MULTI_CLIENT_PATH, speedChecker);
+                        if(fileName == null) {
+                            Platform.runLater((() -> serverAnswerLabel.setText("Problems with loading file " + selectedFileString)));
+                        } else {
+                            Platform.runLater((() -> serverAnswerLabel.setText(new String(fileName) + " successfully loaded from server!")));
+                        }
+                    } else {
+                        Platform.runLater((() -> serverAnswerLabel.setText(selectedFileString + " not found on server and can't upload from server. Try again!")));
+                    }
+                    speedChecker.reset();
                 }
-            } else {
-                serverAnswerLabel.setText(selectedFileString + " not found on server and can't upload from server. Try again!");
-            }
+            });
+            loadFromServerThread.start();
         });
     }
 }

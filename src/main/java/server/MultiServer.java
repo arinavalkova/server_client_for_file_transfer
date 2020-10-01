@@ -39,7 +39,7 @@ public class MultiServer extends Thread {
                         } catch (InterruptedException exception) {
                             exception.printStackTrace();
                         }
-                        System.out.printf("Inst: %.3f Mb/s, Aver: %.3f Mb/s%n", speedChecker.getInstantSpeed(),
+                        System.out.printf(socket.getInetAddress() + " " + socket.getPort() + " Inst: %.3f Mb/s, Aver: %.3f Mb/s%n", speedChecker.getInstantSpeed(),
                                 speedChecker.getAverageSpeed());
                     }
                 }
@@ -119,4 +119,3 @@ public class MultiServer extends Thread {
         }
     }
 }
-

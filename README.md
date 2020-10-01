@@ -20,6 +20,6 @@ File transfer over TCP with calculation of data transfer rate
    * "loadFromServer" + [name of file from server list of files] - to load file from server list to client directory
 3. JavaFX GUI for client and server
    * Server can upload files, delete files
-     ![alt text](server.png)
+     ![](server.PNG)
    * Client can load files from server and upload files to server
-     ![alt text](client.png)
+     ![](client.PNG)

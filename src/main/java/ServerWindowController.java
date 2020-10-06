@@ -204,6 +204,7 @@ public class ServerWindowController {
         private Socket socket;
         private DataInputStream in;
         private DataOutputStream out;
+        private Thread timerThread;
 
         private SpeedChecker speedChecker;
 
@@ -233,7 +234,7 @@ public class ServerWindowController {
         }
 
         private void initTimerThread() {
-            Thread timerThread = new Thread(new Runnable() {
+            timerThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     while (true) {
@@ -256,6 +257,7 @@ public class ServerWindowController {
                         serverTextArea.appendText("Gotten quit from " + socket.getInetAddress() + " " + socket.getPort() + "\n");
 
                         Tools.sendBytes(out, ("Server reply " + line + " - OK" + "\n").getBytes(), Tools.Settings.SERVICE);
+                        timerThread.interrupt();
                         break;
                     } else if (line.equals("loadToServer")) {
 
@@ -287,7 +289,6 @@ public class ServerWindowController {
                             serverTextArea.appendText(new String(fileName) + " not found and can't be uploaded!\n");
                             Tools.sendBytes(out, "not found".getBytes(), Tools.Settings.SERVICE);
                         }
-                        speedChecker.reset();
                     } else {
                         serverTextArea.appendText("Bad command\n");
                     }
@@ -296,6 +297,8 @@ public class ServerWindowController {
                 Tools.closeSocketConnection(socket, in, out);
             } catch (Exception e) {
                 System.out.println("Exception : " + e);
+                speedChecker.reset();
+                timerThread.interrupt();
                 Tools.closeSocketConnection(socket, in, out);
             }
         }

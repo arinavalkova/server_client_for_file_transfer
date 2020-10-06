@@ -98,7 +98,7 @@ public class Tools {
         DATA
     }
 
-    public static void sendBytes(DataOutputStream out, byte[] array, Settings settings) {
+    public static void sendBytes(DataOutputStream out, byte[] array, Settings settings) throws IOException {
 
         if (settings.equals(Settings.SERVICE)) {
             sendPacket(out, new Packet(array));
@@ -107,7 +107,7 @@ public class Tools {
         }
     }
 
-    private static void sendFile(DataOutputStream out, byte[] array) {
+    private static void sendFile(DataOutputStream out, byte[] array) throws IOException {
         sendPacket(out, new Packet(createHeader(array)));
 
         String fileName = new String(array);
@@ -149,17 +149,17 @@ public class Tools {
         return answer;
     }
 
-    private static void sendPacket(DataOutputStream out, Packet packet) {
-        try {
+    private static void sendPacket(DataOutputStream out, Packet packet) throws IOException {
+        //try {
             out.writeInt(packet.getPacketLength());
             out.write(packet.getBytes());
             out.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+       // } catch (IOException e) {
+         //   e.printStackTrace();
+        //}
     }
 
-    public static byte[] getBytes(DataInputStream in, Settings settings, String path, SpeedChecker speedChecker) {
+    public static byte[] getBytes(DataInputStream in, Settings settings, String path, SpeedChecker speedChecker) throws IOException {
         if (settings.equals(Settings.SERVICE)) {
             return getPacket(in);
         } else {
@@ -167,7 +167,7 @@ public class Tools {
         }
     }
 
-    private static byte[] getFile(DataInputStream in, String path, SpeedChecker speedChecker) {
+    private static byte[] getFile(DataInputStream in, String path, SpeedChecker speedChecker) throws IOException {
         byte[] headerArray = getPacket(in);
         System.out.println(new String(headerArray));
 
@@ -204,14 +204,13 @@ public class Tools {
         }
     }
 
-    public static byte[] getPacket(DataInputStream in) {
-        try {
+    public static byte[] getPacket(DataInputStream in) throws IOException {
+        //try {
             int packetLength = in.readInt();
             return in.readNBytes(packetLength);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        //} catch (IOException e) {
+        //    e.printStackTrace();
+        //}
     }
 
     public static File findFile(byte[] fileName) {

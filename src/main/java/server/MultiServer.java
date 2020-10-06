@@ -15,7 +15,8 @@ public class MultiServer extends Thread {
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
-
+    SpeedChecker speedChecker;
+    Thread timerThread;
 
     public MultiServer() {}
     public void setSocket(Socket socket) {
@@ -28,16 +29,16 @@ public class MultiServer extends Thread {
             in = new DataInputStream (socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
 
-            SpeedChecker speedChecker = new SpeedChecker();
+            speedChecker = new SpeedChecker();
 
-            Thread timerThread = new Thread(new Runnable() {
+            timerThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     while(true) {
                         try {
                             Thread.sleep(3000);
                         } catch (InterruptedException exception) {
-                            exception.printStackTrace();
+                            return;
                         }
                         System.out.printf(socket.getInetAddress() + " " + socket.getPort() + " Inst: %.3f Mb/s, Aver: %.3f Mb/s%n", speedChecker.getInstantSpeed(),
                                 speedChecker.getAverageSpeed());
@@ -54,6 +55,7 @@ public class MultiServer extends Thread {
                     System.out.println("Gotten quit from " + socket.getInetAddress() + " " + socket.getPort());
 
                     Tools.sendBytes(out, ("Server reply " + line + " - OK" + "\n").getBytes(), Tools.Settings.SERVICE);
+                    timerThread.interrupt();
                     break;
                 } else if (line.equals("loadToServer")) {
 
@@ -96,9 +98,11 @@ public class MultiServer extends Thread {
                 }
             }
 
+            timerThread.interrupt();
             Tools.closeSocketConnection(socket, in, out);
         } catch(Exception e) {
             System.out.println("Exception : " + e);
+            timerThread.interrupt();
             Tools.closeSocketConnection(socket, in, out);
         }
     }

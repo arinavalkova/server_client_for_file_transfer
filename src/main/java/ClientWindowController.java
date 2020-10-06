@@ -86,7 +86,7 @@ public class ClientWindowController {
         Thread timerThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                while(true) {
+                while (true) {
                     Tools.sleepSec(Consts.THREE_SEC);
                     Platform.runLater(() -> speedLabel.setText(String.format(" Inst: %.3f Mb/s, Aver: %.3f Mb/s",
                             speedChecker.getInstantSpeed(), speedChecker.getAverageSpeed())));
@@ -108,31 +108,38 @@ public class ClientWindowController {
             @Override
             public void run() {
                 while (!listOfServerFilesThread.isInterrupted()) {
-                    if(clientSocket.isClosed())
-                        break;
-                    Tools.sendBytes(outListOfFiles, "getServerFilesList".getBytes(), Tools.Settings.SERVICE);
+                    try {
+                        if (clientSocket.isClosed())
+                            break;
 
-                    if(clientSocket.isClosed())
-                        break;
-                    byte[] fileList = Tools.getBytes(inListOfFiles, Tools.Settings.SERVICE, null, speedChecker);
-                    String fileListString = new String(fileList);
-                    ArrayList<String> fileListArray = new ArrayList<>(Arrays.asList(fileListString.split(" ")));
+                        Tools.sendBytes(outListOfFiles, "getServerFilesList".getBytes(), Tools.Settings.SERVICE);
 
-                    for (int i = 0; i < listOfFiles.size(); i++) {
-                        String currentFile = listOfFiles.get(i);
+                        if (clientSocket.isClosed())
+                            break;
+                        byte[] fileList = new byte[0];
+                        fileList = Tools.getBytes(inListOfFiles, Tools.Settings.SERVICE, null, speedChecker);
 
-                        if (!fileListArray.contains(currentFile))
-                            Platform.runLater((() -> listOfFiles.remove(currentFile)));
+                        String fileListString = new String(fileList);
+                        ArrayList<String> fileListArray = new ArrayList<>(Arrays.asList(fileListString.split(" ")));
+
+                        for (int i = 0; i < listOfFiles.size(); i++) {
+                            String currentFile = listOfFiles.get(i);
+
+                            if (!fileListArray.contains(currentFile))
+                                Platform.runLater((() -> listOfFiles.remove(currentFile)));
+                        }
+
+                        for (int i = 0; i < fileListArray.size(); i++) {
+                            String currentFile = fileListArray.get(i);
+
+                            if (!listOfFiles.contains(currentFile))
+                                Platform.runLater((() -> listOfFiles.add(currentFile)));
+                        }
+
+                        Tools.sleepSec(Consts.FIVE_SEC);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-
-                    for (int i = 0; i < fileListArray.size(); i++) {
-                        String currentFile = fileListArray.get(i);
-
-                        if (!listOfFiles.contains(currentFile))
-                            Platform.runLater((() -> listOfFiles.add(currentFile)));
-                    }
-
-                    Tools.sleepSec(Consts.FIVE_SEC);
                 }
             }
         });
@@ -154,12 +161,20 @@ public class ClientWindowController {
             Thread uploadThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    Tools.sendBytes(out, "loadToServer".getBytes(), Tools.Settings.SERVICE);
-                    Tools.sendBytes(out, file.getAbsolutePath().getBytes(), Tools.Settings.DATA);
+                    try {
+                        Tools.sendBytes(out, "loadToServer".getBytes(), Tools.Settings.SERVICE);
+                        Tools.sendBytes(out, file.getAbsolutePath().getBytes(), Tools.Settings.DATA);
 
-                    byte[] serverAnswer = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
-                    Platform.runLater((() -> serverAnswerLabel.setText(new String(serverAnswer))));
-                    speedChecker.reset();
+
+                        byte[] serverAnswer = new byte[0];
+                        serverAnswer = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
+
+                        byte[] finalServerAnswer = serverAnswer;
+                        Platform.runLater((() -> serverAnswerLabel.setText(new String(finalServerAnswer))));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        speedChecker.reset();
+                    }
                 }
             });
             uploadThread.start();
@@ -170,7 +185,7 @@ public class ClientWindowController {
         loadFromServerButton.setOnAction(event -> {
             MultipleSelectionModel selectedFile = serverContentListView.getSelectionModel();
             Object selectedFileObject = selectedFile.getSelectedItem();
-            if(selectedFileObject == null) {
+            if (selectedFileObject == null) {
                 Platform.runLater((() -> serverAnswerLabel.setText("File is not chosen!")));
                 return;
             }
@@ -178,7 +193,7 @@ public class ClientWindowController {
 
             DirectoryChooser directoryChooser = new DirectoryChooser();
             File dir = directoryChooser.showDialog(null);
-            if(dir == null) {
+            if (dir == null) {
                 return;
             }
             Consts.DEFAULT_MULTI_CLIENT_PATH = dir.getAbsolutePath() + "\\";
@@ -189,21 +204,30 @@ public class ClientWindowController {
                 @Override
                 public void run() {
 
-                    Tools.sendBytes(out, "loadFromServer".getBytes(), Tools.Settings.SERVICE);
-                    Tools.sendBytes(out, selectedFileString.getBytes(), Tools.Settings.SERVICE);
+                    try {
+                        Tools.sendBytes(out, "loadFromServer".getBytes(), Tools.Settings.SERVICE);
+                        Tools.sendBytes(out, selectedFileString.getBytes(), Tools.Settings.SERVICE);
 
-                    byte[] answer = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
-                    if(new String(answer).equals("found")) {
-                        byte[] fileName = Tools.getBytes(in, Tools.Settings.DATA, Consts.DEFAULT_MULTI_CLIENT_PATH, speedChecker);
-                        if(fileName == null) {
-                            Platform.runLater((() -> serverAnswerLabel.setText("Problems with loading file " + selectedFileString)));
+                        byte[] answer = new byte[0];
+                        answer = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
+
+                        if (new String(answer).equals("found")) {
+                            byte[] fileName = new byte[0];
+                            fileName = Tools.getBytes(in, Tools.Settings.DATA, Consts.DEFAULT_MULTI_CLIENT_PATH, speedChecker);
+
+                            if (fileName == null) {
+                                Platform.runLater((() -> serverAnswerLabel.setText("Problems with loading file " + selectedFileString)));
+                            } else {
+                                byte[] finalFileName = fileName;
+                                Platform.runLater((() -> serverAnswerLabel.setText(new String(finalFileName) + " successfully loaded from server!")));
+                            }
                         } else {
-                            Platform.runLater((() -> serverAnswerLabel.setText(new String(fileName) + " successfully loaded from server!")));
+                            Platform.runLater((() -> serverAnswerLabel.setText(selectedFileString + " not found on server and can't upload from server. Try again!")));
                         }
-                    } else {
-                        Platform.runLater((() -> serverAnswerLabel.setText(selectedFileString + " not found on server and can't upload from server. Try again!")));
+                    } catch (IOException e) {
+                        speedChecker.reset();
+                        e.printStackTrace();
                     }
-                    speedChecker.reset();
                 }
             });
             loadFromServerThread.start();

@@ -15,6 +15,7 @@ public class ServerMain extends Thread {
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
+    SpeedChecker speedChecker;
 
     public ServerMain() {
     }
@@ -29,7 +30,7 @@ public class ServerMain extends Thread {
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
 
-            SpeedChecker speedChecker = new SpeedChecker();
+            speedChecker = new SpeedChecker();
 
             Thread timerThread = new Thread(new Runnable() {
                 @Override
@@ -58,6 +59,7 @@ public class ServerMain extends Thread {
             Tools.closeSocketConnection(socket, in , out);
         } catch (Exception e) {
             System.out.println("Exception : " + e);
+            speedChecker.reset();
             Tools.closeSocketConnection(socket, in , out);
         }
     }
@@ -78,4 +80,3 @@ public class ServerMain extends Thread {
         }
     }
 }
-

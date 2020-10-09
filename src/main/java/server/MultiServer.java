@@ -1,5 +1,6 @@
 package server;
 
+import javafx.application.Platform;
 import networks.Consts;
 import networks.SpeedChecker;
 import networks.Tools;
@@ -10,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLOutput;
 
 public class MultiServer extends Thread {
     private Socket socket;
@@ -35,13 +37,14 @@ public class MultiServer extends Thread {
                 @Override
                 public void run() {
                     while(true) {
-                        try {
-                            Thread.sleep(3000);
-                        } catch (InterruptedException exception) {
-                            return;
-                        }
-                        System.out.printf(socket.getInetAddress() + " " + socket.getPort() + " Inst: %.3f Mb/s, Aver: %.3f Mb/s%n", speedChecker.getInstantSpeed(),
-                                speedChecker.getAverageSpeed());
+                        Tools.sleepSec(Consts.THREE_SEC);
+                        var is = speedChecker.getInstantSpeed();
+                        var as = speedChecker.getAverageSpeed();
+                        if(is != 0 && as != 0)
+                            System.out.println(String.format(
+                                    " %s %d Inst: %.3f Mb/s, Aver: %.3f Mb/s\n", socket.getInetAddress(),
+                                    socket.getPort(), is, as)
+                            );
                     }
                 }
             });

@@ -63,6 +63,7 @@ public class MultiClient {
 
                     byte[] message = Tools.getBytes(in, Tools.Settings.SERVICE, null, speedChecker);
                     System.out.println(new String(message));
+                    speedChecker.reset();
                     break;
 
                 } else if (commandArray[0].equals("getServerFilesList")) {
@@ -98,6 +99,7 @@ public class MultiClient {
                 }
             } catch (IOException e) {
                 Tools.closeSocketConnection(clientSocket, in, out);
+                speedChecker.reset();
                 System.err.println(e);
             }
         }

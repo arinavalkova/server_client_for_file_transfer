@@ -36,13 +36,14 @@ public class ServerMain extends Thread {
                 @Override
                 public void run() {
                     while(true) {
-                        try {
-                            Thread.sleep(3000);
-                        } catch (InterruptedException exception) {
-                            exception.printStackTrace();
-                        }
-                        System.out.printf(socket.getInetAddress() + " " + socket.getPort() + " Inst: %.3f Mb/s, Aver: %.3f Mb/s%n", speedChecker.getInstantSpeed(),
-                                speedChecker.getAverageSpeed());
+                        Tools.sleepSec(Consts.THREE_SEC);
+                        var is = speedChecker.getInstantSpeed();
+                        var as = speedChecker.getAverageSpeed();
+                        if(is != 0 && as != 0)
+                            System.out.println(String.format(
+                                    " %s %d Inst: %.3f Mb/s, Aver: %.3f Mb/s\n", socket.getInetAddress(),
+                                    socket.getPort(), is, as)
+                            );
                     }
                 }
             });

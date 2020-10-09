@@ -88,8 +88,13 @@ public class ClientWindowController {
             public void run() {
                 while (true) {
                     Tools.sleepSec(Consts.THREE_SEC);
-                    Platform.runLater(() -> speedLabel.setText(String.format(" Inst: %.3f Mb/s, Aver: %.3f Mb/s",
-                            speedChecker.getInstantSpeed(), speedChecker.getAverageSpeed())));
+                    var is = speedChecker.getInstantSpeed();
+                    var as = speedChecker.getAverageSpeed();
+                    if(is != 0 && as != 0)
+                        Platform.runLater(() -> speedLabel.setText(String.format(
+                                " %s %d Inst: %.3f Mb/s, Aver: %.3f Mb/s\n", clientSocket.getInetAddress(),
+                                clientSocket.getPort(), is, as))
+                        );
                 }
             }
         });
@@ -224,6 +229,7 @@ public class ClientWindowController {
                         } else {
                             Platform.runLater((() -> serverAnswerLabel.setText(selectedFileString + " not found on server and can't upload from server. Try again!")));
                         }
+                        speedChecker.reset();
                     } catch (IOException e) {
                         speedChecker.reset();
                         e.printStackTrace();

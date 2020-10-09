@@ -140,8 +140,8 @@ public class Tools {
     private static byte[] readBytes(FileInputStream fileInputStream, long length) {
         byte[] answer = new byte[(int) length];
         try {
-            for (int off = 0; off < length;) {
-                off += fileInputStream.read(answer, off, (int)length - off);
+            for (int off = 0; off < length; ) {
+                off += fileInputStream.read(answer, off, (int) length - off);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -150,13 +150,9 @@ public class Tools {
     }
 
     private static void sendPacket(DataOutputStream out, Packet packet) throws IOException {
-        //try {
-            out.writeInt(packet.getPacketLength());
-            out.write(packet.getBytes());
-            out.flush();
-       // } catch (IOException e) {
-         //   e.printStackTrace();
-        //}
+        out.writeInt(packet.getPacketLength());
+        out.write(packet.getBytes());
+        out.flush();
     }
 
     public static byte[] getBytes(DataInputStream in, Settings settings, String path, SpeedChecker speedChecker) throws IOException {
@@ -169,7 +165,6 @@ public class Tools {
 
     private static byte[] getFile(DataInputStream in, String path, SpeedChecker speedChecker) throws IOException {
         byte[] headerArray = getPacket(in);
-        System.out.println(new String(headerArray));
 
         Header header = new Header(headerArray);
 
@@ -179,10 +174,9 @@ public class Tools {
 
             speedChecker.setStartTime(System.currentTimeMillis());
 
-            for(int i = 0; i < header.getCountOfPackets(); i++) {
+            for (int i = 0; i < header.getCountOfPackets(); i++) {
                 byte[] a = getPacket(in);
-                if (i % 10 == 0)
-                    speedChecker.addBytesCount(a.length);
+                speedChecker.addBytesCount(a.length);
                 fileOutputStream.write(a);
             }
 
@@ -205,12 +199,8 @@ public class Tools {
     }
 
     public static byte[] getPacket(DataInputStream in) throws IOException {
-        //try {
-            int packetLength = in.readInt();
-            return in.readNBytes(packetLength);
-        //} catch (IOException e) {
-        //    e.printStackTrace();
-        //}
+        int packetLength = in.readInt();
+        return in.readNBytes(packetLength);
     }
 
     public static File findFile(byte[] fileName) {
@@ -219,7 +209,7 @@ public class Tools {
         String fileNameString = new String(fileName);
 
         for (File value : files) {
-            if(value.getName().equals(fileNameString)){
+            if (value.getName().equals(fileNameString)) {
                 return value;
             }
         }

@@ -44,9 +44,6 @@ public class ServerWindowController {
     private JFXButton changeServerPath;
 
     @FXML
-    private Label speedLabel;
-
-    @FXML
     private Label serverAnswerLabel;
 
     private ObservableList<String> listOfFiles = FXCollections.observableArrayList();
@@ -79,7 +76,7 @@ public class ServerWindowController {
 
                     while (!server.isClosed()) {
                         Socket client = server.accept();
-                        serverTextArea.appendText("Connection to " + client.getInetAddress() + " " + client.getPort() + " accepted...");
+                        serverTextArea.appendText("Connection to " + client.getInetAddress() + " " + client.getPort() + " accepted...\n");
                         new Server().setSocket(client);
                     }
                 } catch (IOException e) {
@@ -239,8 +236,13 @@ public class ServerWindowController {
                 public void run() {
                     while (true) {
                         Tools.sleepSec(Consts.THREE_SEC);
-                        Platform.runLater(() -> speedLabel.setText(String.format(" Inst: %.3f Mb/s, Aver: %.3f Mb/s",
-                                speedChecker.getInstantSpeed(), speedChecker.getAverageSpeed())));
+                        var is = speedChecker.getInstantSpeed();
+                        var as = speedChecker.getAverageSpeed();
+                        if(is != 0 && as != 0)
+                            Platform.runLater(() -> serverTextArea.appendText(String.format(
+                                    " %s %d Inst: %.3f Mb/s, Aver: %.3f Mb/s\n", socket.getInetAddress(),
+                                    socket.getPort(), is, as))
+                            );
                     }
                 }
             });
